@@ -1,4 +1,7 @@
 
+// Import API service
+import api from './api.js';
+
 // DOM Elements
 document.addEventListener('DOMContentLoaded', function() {
   // Current Date Display
@@ -24,7 +27,7 @@ document.addEventListener('DOMContentLoaded', function() {
     greetingEl.textContent = greeting;
   }
 
-  // Initialize local storage
+  // Initialize offline fallback if needed
   if (!localStorage.getItem('medicines')) {
     localStorage.setItem('medicines', JSON.stringify([]));
   }
@@ -88,7 +91,7 @@ document.addEventListener('DOMContentLoaded', function() {
     addTimeSlotBtn.addEventListener('click', addTimeSlot);
     
     // Form submission
-    medicineForm.addEventListener('submit', function(e) {
+    medicineForm.addEventListener('submit', async function(e) {
       e.preventDefault();
       
       // Get form data
@@ -119,7 +122,6 @@ document.addEventListener('DOMContentLoaded', function() {
       
       // Create medicine object
       const medicine = {
-        id: medicineId || Date.now().toString(),
         name: medicineName,
         type: medicineType || 'tablet',
         dosage: dosage,
@@ -127,12 +129,27 @@ document.addEventListener('DOMContentLoaded', function() {
         timeSlots: timeSlots,
         days: days,
         duration: duration,
-        notes: notes,
-        created: medicineId ? getMedicineCreatedDate(medicineId) : new Date().toISOString()
+        notes: notes
       };
       
-      // Save to local storage
-      saveMedicine(medicine, !!medicineId);
+      // Add id if editing
+      if (medicineId) {
+        medicine.id = medicineId;
+      }
+      
+      let result;
+      // Save to backend
+      if (medicineId) {
+        result = await api.updateMedicine(medicineId, medicine);
+      } else {
+        result = await api.addMedicine(medicine);
+      }
+      
+      // Check for errors
+      if (result.error) {
+        showToast(result.error, 'error');
+        return;
+      }
       
       // Show toast notification
       showToast(medicineId ? 'Medicine updated successfully' : 'Medicine added successfully');
@@ -216,7 +233,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Add event listeners for take buttons
     document.addEventListener('click', function(e) {
-      if (e.target.classList.contains('take-btn')) {
+      if (e.target.classList.contains('take-btn') && !e.target.classList.contains('taken')) {
         const medicineId = e.target.dataset.id;
         const timeSlot = e.target.dataset.time;
         
@@ -256,8 +273,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Handle profile page
   if (currentPage === 'profile.html') {
-    // Load profile stats
-    updateProfileStats();
+    // Load profile data
+    loadProfileData();
     
     // Add click events to settings sections
     const profileSections = document.querySelectorAll('.profile-section');
@@ -302,15 +319,24 @@ document.addEventListener('DOMContentLoaded', function() {
       confirmationModal.style.display = 'none';
     });
     
-    confirmDeleteBtn.addEventListener('click', function() {
+    confirmDeleteBtn.addEventListener('click', async function() {
       const medicineId = this.dataset.id;
-      deleteMedicine(medicineId);
+      const result = await api.deleteMedicine(medicineId);
+      
+      if (result.error) {
+        showToast(result.error, 'error');
+        return;
+      }
+      
       confirmationModal.style.display = 'none';
       document.getElementById('medicine-detail-modal').style.display = 'none';
       renderMedicineList();
       showToast('Medicine deleted successfully');
     });
   }
+
+  // Add connection status indicator
+  addConnectionStatusIndicator();
 });
 
 // Helper Functions
@@ -341,125 +367,157 @@ function updatePillIcon(type) {
 }
 
 // Populate medicine form with existing data
-function populateMedicineForm(medicineId) {
-  const medicines = JSON.parse(localStorage.getItem('medicines') || '[]');
-  const medicine = medicines.find(med => med.id === medicineId);
-  
-  if (!medicine) return;
-  
-  // Set form values
-  document.getElementById('medicine-name').value = medicine.name;
-  if (medicine.type && document.getElementById('medicine-type')) {
-    document.getElementById('medicine-type').value = medicine.type;
-  }
-  document.getElementById('dosage').value = medicine.dosage;
-  document.getElementById('frequency').value = medicine.frequency;
-  document.getElementById('notes').value = medicine.notes || '';
-  document.getElementById('duration').value = medicine.duration;
-  
-  // Set days
-  const dayCheckboxes = document.querySelectorAll('.day input[type="checkbox"]');
-  dayCheckboxes.forEach(checkbox => {
-    checkbox.checked = medicine.days.includes(checkbox.value);
-  });
-  
-  // Set time slots
-  const timeSlots = document.getElementById('time-slots');
-  // Clear existing time slots
-  timeSlots.innerHTML = '';
-  
-  // Add time slots
-  medicine.timeSlots.forEach((time, index) => {
-    const timeSlot = document.createElement('div');
-    timeSlot.className = 'time-slot';
-    timeSlot.innerHTML = `
-      <input type="time" class="time-input" value="${time}" required>
-      ${index > 0 ? '<button type="button" class="remove-time"><i class="fas fa-times"></i></button>' : '<button type="button" class="remove-time hidden"><i class="fas fa-times"></i></button>'}
-    `;
+async function populateMedicineForm(medicineId) {
+  try {
+    // Fetch medicine data from API
+    const medicine = await api.fetchMedicineById(medicineId);
     
-    // Add remove event for non-first slots
-    if (index > 0) {
-      timeSlot.querySelector('.remove-time').addEventListener('click', function() {
-        this.parentElement.remove();
-      });
+    if (!medicine) {
+      showToast('Medicine not found', 'error');
+      return;
     }
     
-    timeSlots.appendChild(timeSlot);
-  });
-}
-
-// Get medicine created date
-function getMedicineCreatedDate(medicineId) {
-  const medicines = JSON.parse(localStorage.getItem('medicines') || '[]');
-  const medicine = medicines.find(med => med.id === medicineId);
-  return medicine ? medicine.created : new Date().toISOString();
-}
-
-// Save medicine to local storage
-function saveMedicine(medicine, isUpdate) {
-  const medicines = JSON.parse(localStorage.getItem('medicines') || '[]');
-  
-  if (isUpdate) {
-    // Update existing medicine
-    const index = medicines.findIndex(med => med.id === medicine.id);
-    if (index !== -1) {
-      medicines[index] = medicine;
+    // Set form values
+    document.getElementById('medicine-name').value = medicine.name;
+    if (medicine.type && document.getElementById('medicine-type')) {
+      document.getElementById('medicine-type').value = medicine.type;
     }
-  } else {
-    // Add new medicine
-    medicines.push(medicine);
+    document.getElementById('dosage').value = medicine.dosage;
+    document.getElementById('frequency').value = medicine.frequency;
+    document.getElementById('notes').value = medicine.notes || '';
+    document.getElementById('duration').value = medicine.duration;
+    
+    // Set days
+    const dayCheckboxes = document.querySelectorAll('.day input[type="checkbox"]');
+    dayCheckboxes.forEach(checkbox => {
+      checkbox.checked = medicine.days.includes(checkbox.value);
+    });
+    
+    // Set time slots
+    const timeSlots = document.getElementById('time-slots');
+    // Clear existing time slots
+    timeSlots.innerHTML = '';
+    
+    // Add time slots
+    medicine.timeSlots.forEach((time, index) => {
+      const timeSlot = document.createElement('div');
+      timeSlot.className = 'time-slot';
+      timeSlot.innerHTML = `
+        <input type="time" class="time-input" value="${time}" required>
+        ${index > 0 ? '<button type="button" class="remove-time"><i class="fas fa-times"></i></button>' : '<button type="button" class="remove-time hidden"><i class="fas fa-times"></i></button>'}
+      `;
+      
+      // Add remove event for non-first slots
+      if (index > 0) {
+        timeSlot.querySelector('.remove-time').addEventListener('click', function() {
+          this.parentElement.remove();
+        });
+      }
+      
+      timeSlots.appendChild(timeSlot);
+    });
+  } catch (error) {
+    console.error('Error populating form:', error);
+    showToast('Error loading medicine data', 'error');
   }
-  
-  localStorage.setItem('medicines', JSON.stringify(medicines));
 }
 
 // Render medicine list
-function renderMedicineList(searchTerm = '', filter = 'all') {
+async function renderMedicineList(searchTerm = '', filter = 'all') {
   const medicineListEl = document.getElementById('medicine-full-list');
   if (!medicineListEl) return;
   
-  // Clear list
-  medicineListEl.innerHTML = '';
+  // Show loading state
+  medicineListEl.innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i></div>';
   
-  // Get medicines from local storage
-  const medicines = JSON.parse(localStorage.getItem('medicines') || '[]');
-  
-  // Apply filter
-  let filteredMedicines = medicines;
-  
-  if (filter === 'daily') {
-    filteredMedicines = medicines.filter(med => med.days.length === 7);
-  } else if (filter === 'weekly') {
-    filteredMedicines = medicines.filter(med => med.days.length > 0 && med.days.length < 7);
-  } else if (filter === 'other') {
-    filteredMedicines = medicines.filter(med => med.days.length === 0);
-  }
-  
-  // Apply search filter if provided
-  if (searchTerm) {
-    filteredMedicines = filteredMedicines.filter(med => 
-      med.name.toLowerCase().includes(searchTerm) ||
-      med.dosage.toLowerCase().includes(searchTerm)
-    );
-  }
-  
-  if (filteredMedicines.length === 0) {
+  try {
+    // Get medicines from API
+    let medicines = await api.fetchMedicines();
+    
+    // Apply filter
+    if (filter === 'daily') {
+      medicines = medicines.filter(med => med.days.length === 7);
+    } else if (filter === 'weekly') {
+      medicines = medicines.filter(med => med.days.length > 0 && med.days.length < 7);
+    } else if (filter === 'other') {
+      medicines = medicines.filter(med => med.days.length === 0);
+    }
+    
+    // Apply search filter if provided
+    if (searchTerm) {
+      medicines = medicines.filter(med => 
+        med.name.toLowerCase().includes(searchTerm) ||
+        med.dosage.toLowerCase().includes(searchTerm)
+      );
+    }
+    
+    // Clear list
+    medicineListEl.innerHTML = '';
+    
+    if (medicines.length === 0) {
+      medicineListEl.innerHTML = `
+        <div class="empty-state">
+          <p>${searchTerm ? 'No medicines found matching your search.' : 'No medicines added yet.'}</p>
+          ${!searchTerm ? '<p>Click the + button to add your first medicine.</p>' : ''}
+        </div>
+      `;
+      return;
+    }
+    
+    // Sort by name
+    medicines.sort((a, b) => a.name.localeCompare(b.name));
+    
+    // Render each medicine
+    medicines.forEach(medicine => {
+      const medicineEl = document.createElement('div');
+      medicineEl.className = 'medicine-item';
+      
+      // Determine icon based on medicine type
+      let iconClass = 'fa-pills';
+      if (medicine.type === 'capsule') iconClass = 'fa-capsules';
+      else if (medicine.type === 'liquid') iconClass = 'fa-prescription-bottle';
+      else if (medicine.type === 'injection') iconClass = 'fa-syringe';
+      
+      medicineEl.innerHTML = `
+        <div class="pill-icon"><i class="fas ${iconClass}"></i></div>
+        <div class="medicine-item-info">
+          <h3>${medicine.name}</h3>
+          <p>${medicine.dosage} - ${formatFrequency(medicine.frequency)}</p>
+        </div>
+        <button class="icon-btn view-details" data-id="${medicine.id}">
+          <i class="fas fa-chevron-right"></i>
+        </button>
+      `;
+      
+      // Add click event for viewing details
+      medicineEl.querySelector('.view-details').addEventListener('click', function() {
+        openMedicineDetails(medicine.id);
+      });
+      
+      medicineListEl.appendChild(medicineEl);
+    });
+  } catch (error) {
+    console.error('Error rendering medicine list:', error);
     medicineListEl.innerHTML = `
-      <div class="empty-state">
-        <p>${searchTerm ? 'No medicines found matching your search.' : 'No medicines added yet.'}</p>
-        ${!searchTerm ? '<p>Click the + button to add your first medicine.</p>' : ''}
+      <div class="error-state">
+        <p>Error loading medicines. Please try again later.</p>
+        <button class="secondary-btn" onclick="renderMedicineList()">Retry</button>
       </div>
     `;
-    return;
   }
-  
-  // Sort by name
-  filteredMedicines.sort((a, b) => a.name.localeCompare(b.name));
-  
-  // Render each medicine
-  filteredMedicines.forEach(medicine => {
-    const medicineEl = document.createElement('div');
-    medicineEl.className = 'medicine-item';
+}
+
+// Open medicine details modal
+async function openMedicineDetails(medicineId) {
+  try {
+    const medicine = await api.fetchMedicineById(medicineId);
+    
+    if (!medicine) {
+      showToast('Medicine not found', 'error');
+      return;
+    }
+    
+    const detailContent = document.getElementById('medicine-detail-content');
     
     // Determine icon based on medicine type
     let iconClass = 'fa-pills';
@@ -467,86 +525,55 @@ function renderMedicineList(searchTerm = '', filter = 'all') {
     else if (medicine.type === 'liquid') iconClass = 'fa-prescription-bottle';
     else if (medicine.type === 'injection') iconClass = 'fa-syringe';
     
-    medicineEl.innerHTML = `
-      <div class="pill-icon"><i class="fas ${iconClass}"></i></div>
-      <div class="medicine-item-info">
-        <h3>${medicine.name}</h3>
-        <p>${medicine.dosage} - ${formatFrequency(medicine.frequency)}</p>
+    detailContent.innerHTML = `
+      <div class="medicine-detail-header">
+        <div class="pill-icon"><i class="fas ${iconClass}"></i></div>
+        <h2>${medicine.name}</h2>
       </div>
-      <button class="icon-btn view-details" data-id="${medicine.id}">
-        <i class="fas fa-chevron-right"></i>
-      </button>
+      <div class="medicine-details">
+        <div>
+          <i class="fas fa-prescription-bottle"></i>
+          <span>${medicine.dosage}</span>
+        </div>
+        <div>
+          <i class="fas fa-clock"></i>
+          <span>${formatFrequency(medicine.frequency)}</span>
+        </div>
+        <div>
+          <i class="fas fa-calendar-alt"></i>
+          <span>${formatDays(medicine.days)}</span>
+        </div>
+        ${medicine.timeSlots.length > 0 ? `
+          <div>
+            <i class="fas fa-hourglass"></i>
+            <span>${medicine.timeSlots.map(formatTime).join(', ')}</span>
+          </div>
+        ` : ''}
+        ${medicine.duration ? `
+          <div>
+            <i class="fas fa-calendar-day"></i>
+            <span>${formatDuration(medicine.duration)}</span>
+          </div>
+        ` : ''}
+        ${medicine.notes ? `
+          <div>
+            <i class="fas fa-sticky-note"></i>
+            <span>${medicine.notes}</span>
+          </div>
+        ` : ''}
+      </div>
     `;
     
-    // Add click event for viewing details
-    medicineEl.querySelector('.view-details').addEventListener('click', function() {
-      openMedicineDetails(medicine.id);
-    });
+    // Set medicine ID for edit and delete buttons
+    document.getElementById('edit-medicine').dataset.id = medicineId;
+    document.getElementById('delete-medicine').dataset.id = medicineId;
     
-    medicineListEl.appendChild(medicineEl);
-  });
-}
-
-// Open medicine details modal
-function openMedicineDetails(medicineId) {
-  const medicines = JSON.parse(localStorage.getItem('medicines') || '[]');
-  const medicine = medicines.find(med => med.id === medicineId);
-  
-  if (!medicine) return;
-  
-  const detailContent = document.getElementById('medicine-detail-content');
-  
-  // Determine icon based on medicine type
-  let iconClass = 'fa-pills';
-  if (medicine.type === 'capsule') iconClass = 'fa-capsules';
-  else if (medicine.type === 'liquid') iconClass = 'fa-prescription-bottle';
-  else if (medicine.type === 'injection') iconClass = 'fa-syringe';
-  
-  detailContent.innerHTML = `
-    <div class="medicine-detail-header">
-      <div class="pill-icon"><i class="fas ${iconClass}"></i></div>
-      <h2>${medicine.name}</h2>
-    </div>
-    <div class="medicine-details">
-      <div>
-        <i class="fas fa-prescription-bottle"></i>
-        <span>${medicine.dosage}</span>
-      </div>
-      <div>
-        <i class="fas fa-clock"></i>
-        <span>${formatFrequency(medicine.frequency)}</span>
-      </div>
-      <div>
-        <i class="fas fa-calendar-alt"></i>
-        <span>${formatDays(medicine.days)}</span>
-      </div>
-      ${medicine.timeSlots.length > 0 ? `
-        <div>
-          <i class="fas fa-hourglass"></i>
-          <span>${medicine.timeSlots.map(formatTime).join(', ')}</span>
-        </div>
-      ` : ''}
-      ${medicine.duration ? `
-        <div>
-          <i class="fas fa-calendar-day"></i>
-          <span>${formatDuration(medicine.duration)}</span>
-        </div>
-      ` : ''}
-      ${medicine.notes ? `
-        <div>
-          <i class="fas fa-sticky-note"></i>
-          <span>${medicine.notes}</span>
-        </div>
-      ` : ''}
-    </div>
-  `;
-  
-  // Set medicine ID for edit and delete buttons
-  document.getElementById('edit-medicine').dataset.id = medicineId;
-  document.getElementById('delete-medicine').dataset.id = medicineId;
-  
-  // Show modal
-  document.getElementById('medicine-detail-modal').style.display = 'flex';
+    // Show modal
+    document.getElementById('medicine-detail-modal').style.display = 'flex';
+  } catch (error) {
+    console.error('Error opening medicine details:', error);
+    showToast('Error loading medicine details', 'error');
+  }
 }
 
 // Open confirmation modal for deleting medicine
@@ -556,108 +583,137 @@ function openConfirmationModal(medicineId) {
   document.getElementById('confirmation-modal').style.display = 'flex';
 }
 
-// Delete medicine
-function deleteMedicine(medicineId) {
-  let medicines = JSON.parse(localStorage.getItem('medicines') || '[]');
-  medicines = medicines.filter(med => med.id !== medicineId);
-  localStorage.setItem('medicines', JSON.stringify(medicines));
-}
-
 // Render today's medicines
-function renderTodayMedicines() {
+async function renderTodayMedicines() {
   const todayListEl = document.getElementById('today-list');
   if (!todayListEl) return;
   
-  // Get medicines from local storage
-  const medicines = JSON.parse(localStorage.getItem('medicines') || '[]');
+  // Show loading state
+  todayListEl.innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i></div>';
   
-  // Get today's day of week
-  const today = new Date();
-  const dayOfWeek = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'][today.getDay()];
-  
-  // Filter medicines for today
-  const todayMedicines = medicines.filter(med => med.days.includes(dayOfWeek));
-  
-  if (todayMedicines.length === 0) {
+  try {
+    // Get medicines from API
+    const medicines = await api.fetchMedicines();
+    
+    // Get today's day of week
+    const today = new Date();
+    const dayOfWeek = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'][today.getDay()];
+    
+    // Filter medicines for today
+    const todayMedicines = medicines.filter(med => med.days.includes(dayOfWeek));
+    
+    // Clear container
+    todayListEl.innerHTML = '';
+    
+    if (todayMedicines.length === 0) {
+      todayListEl.innerHTML = `
+        <div class="empty-state">
+          <p>No medications scheduled for today.</p>
+          <p>Add medicines to get started.</p>
+        </div>
+      `;
+      return;
+    }
+    
+    // Group medicines by time slot
+    const medicinesByTime = {};
+    
+    todayMedicines.forEach(med => {
+      med.timeSlots.forEach(time => {
+        if (!medicinesByTime[time]) {
+          medicinesByTime[time] = [];
+        }
+        medicinesByTime[time].push(med);
+      });
+    });
+    
+    // Sort times
+    const sortedTimes = Object.keys(medicinesByTime).sort();
+    
+    // Clear timeline
+    const timelineEl = document.querySelector('.timeline');
+    if (timelineEl) {
+      timelineEl.innerHTML = '';
+      
+      // Render each time slot
+      sortedTimes.forEach(time => {
+        const timeSlotEl = document.createElement('div');
+        timeSlotEl.className = 'timeline-item';
+        
+        const timeEl = document.createElement('div');
+        timeEl.className = 'time';
+        timeEl.textContent = formatTime(time);
+        
+        const medicineCardsEl = document.createElement('div');
+        medicineCardsEl.className = 'medicine-cards';
+        
+        // Add each medicine for this time
+        medicinesByTime[time].forEach(med => {
+          const isTaken = checkIfTaken(med.id, time);
+          
+          // Determine icon based on medicine type
+          let iconClass = 'fa-pills';
+          if (med.type === 'capsule') iconClass = 'fa-capsules';
+          else if (med.type === 'liquid') iconClass = 'fa-prescription-bottle';
+          else if (med.type === 'injection') iconClass = 'fa-syringe';
+          
+          const medicineCardEl = document.createElement('div');
+          medicineCardEl.className = 'medicine-card';
+          medicineCardEl.innerHTML = `
+            <div class="pill-icon"><i class="fas ${iconClass}"></i></div>
+            <div class="medicine-info">
+              <h3>${med.name}</h3>
+              <p>${med.dosage}</p>
+            </div>
+            <button class="take-btn ${isTaken ? 'taken' : ''}" 
+                    data-id="${med.id}" 
+                    data-time="${time}"
+                    ${isTaken ? 'disabled' : ''}>
+              ${isTaken ? 'Taken' : 'Take'}
+            </button>
+          `;
+          
+          medicineCardsEl.appendChild(medicineCardEl);
+        });
+        
+        timeSlotEl.appendChild(timeEl);
+        timeSlotEl.appendChild(medicineCardsEl);
+        timelineEl.appendChild(timeSlotEl);
+      });
+    }
+  } catch (error) {
+    console.error('Error rendering today medicines:', error);
     todayListEl.innerHTML = `
-      <div class="empty-state">
-        <p>No medications scheduled for today.</p>
-        <p>Add medicines to get started.</p>
+      <div class="error-state">
+        <p>Error loading today's medications. Please try again later.</p>
+        <button class="secondary-btn" onclick="renderTodayMedicines()">Retry</button>
       </div>
     `;
-    return;
-  }
-  
-  // Group medicines by time slot
-  const medicinesByTime = {};
-  
-  todayMedicines.forEach(med => {
-    med.timeSlots.forEach(time => {
-      if (!medicinesByTime[time]) {
-        medicinesByTime[time] = [];
-      }
-      medicinesByTime[time].push(med);
-    });
-  });
-  
-  // Sort times
-  const sortedTimes = Object.keys(medicinesByTime).sort();
-  
-  // Clear timeline
-  const timelineEl = document.querySelector('.timeline');
-  if (timelineEl) {
-    timelineEl.innerHTML = '';
-    
-    // Render each time slot
-    sortedTimes.forEach(time => {
-      const timeSlotEl = document.createElement('div');
-      timeSlotEl.className = 'timeline-item';
-      
-      const timeEl = document.createElement('div');
-      timeEl.className = 'time';
-      timeEl.textContent = formatTime(time);
-      
-      const medicineCardsEl = document.createElement('div');
-      medicineCardsEl.className = 'medicine-cards';
-      
-      // Add each medicine for this time
-      medicinesByTime[time].forEach(med => {
-        const isTaken = checkIfTaken(med.id, time);
-        
-        // Determine icon based on medicine type
-        let iconClass = 'fa-pills';
-        if (med.type === 'capsule') iconClass = 'fa-capsules';
-        else if (med.type === 'liquid') iconClass = 'fa-prescription-bottle';
-        else if (med.type === 'injection') iconClass = 'fa-syringe';
-        
-        const medicineCardEl = document.createElement('div');
-        medicineCardEl.className = 'medicine-card';
-        medicineCardEl.innerHTML = `
-          <div class="pill-icon"><i class="fas ${iconClass}"></i></div>
-          <div class="medicine-info">
-            <h3>${med.name}</h3>
-            <p>${med.dosage}</p>
-          </div>
-          <button class="take-btn ${isTaken ? 'taken' : ''}" 
-                  data-id="${med.id}" 
-                  data-time="${time}"
-                  ${isTaken ? 'disabled' : ''}>
-            ${isTaken ? 'Taken' : 'Take'}
-          </button>
-        `;
-        
-        medicineCardsEl.appendChild(medicineCardEl);
-      });
-      
-      timeSlotEl.appendChild(timeEl);
-      timeSlotEl.appendChild(medicineCardsEl);
-      timelineEl.appendChild(timeSlotEl);
-    });
   }
 }
 
 // Mark medicine as taken
-function markMedicineAsTaken(medicineId, timeSlot) {
+async function markMedicineAsTaken(medicineId, timeSlot) {
+  try {
+    const today = new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
+    const result = await api.markMedicineAsTaken(medicineId, today, timeSlot);
+    
+    if (result.error) {
+      showToast(result.error, 'error');
+      
+      // Fallback to local storage if API fails
+      markMedicineAsTakenLocally(medicineId, timeSlot);
+    }
+  } catch (error) {
+    console.error('Error marking medicine as taken:', error);
+    
+    // Fallback to local storage
+    markMedicineAsTakenLocally(medicineId, timeSlot);
+  }
+}
+
+// Local fallback for marking medicine as taken
+function markMedicineAsTakenLocally(medicineId, timeSlot) {
   const taken = JSON.parse(localStorage.getItem('taken') || '{}');
   const today = new Date().toDateString();
   
@@ -759,11 +815,26 @@ function formatTime(time24) {
 }
 
 // Show toast notification
-function showToast(message) {
+function showToast(message, type = 'success') {
   const toast = document.getElementById('toast-notification');
   const toastMessage = document.getElementById('toast-message');
   
   if (toast && toastMessage) {
+    // Update icon based on type
+    const icon = toast.querySelector('i');
+    if (icon) {
+      icon.className = type === 'error' 
+        ? 'fas fa-exclamation-circle' 
+        : 'fas fa-check-circle';
+    }
+    
+    // Add error class if needed
+    if (type === 'error') {
+      toast.classList.add('error');
+    } else {
+      toast.classList.remove('error');
+    }
+    
     toastMessage.textContent = message;
     toast.style.display = 'flex';
     
@@ -803,68 +874,84 @@ function changeMonth(delta) {
 }
 
 // Render calendar
-function renderCalendar(year, month) {
+async function renderCalendar(year, month) {
   const calendarDays = document.getElementById('calendar-days');
   const monthYearLabel = document.getElementById('calendar-month-year');
   
   if (!calendarDays || !monthYearLabel) return;
   
+  // Show loading state
+  calendarDays.innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i></div>';
+  
   const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
   
   monthYearLabel.textContent = `${months[month]} ${year}`;
   
-  // Clear calendar
-  calendarDays.innerHTML = '';
-  
-  // Get first day of month and number of days
-  const firstDay = new Date(year, month, 1).getDay();
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  
-  // Get days with medications
-  const medsOnDays = getMedicationDays(year, month);
-  
-  // Get today's date
-  const today = new Date();
-  const isCurrentMonth = today.getMonth() === month && today.getFullYear() === year;
-  const todayDate = today.getDate();
-  
-  // Previous month's days
-  const prevMonthDays = new Date(year, month, 0).getDate();
-  for (let i = firstDay - 1; i >= 0; i--) {
-    const day = prevMonthDays - i;
-    const dayEl = createCalendarDay(day, 'prev-month', false, false);
-    calendarDays.appendChild(dayEl);
-  }
-  
-  // Current month's days
-  for (let i = 1; i <= daysInMonth; i++) {
-    const isToday = isCurrentMonth && i === todayDate;
-    const hasMeds = medsOnDays.includes(i);
-    const dayEl = createCalendarDay(i, 'current-month', isToday, hasMeds);
+  try {
+    // Fetch medicines from API
+    const medicines = await api.fetchMedicines();
     
-    // Add click event
-    dayEl.addEventListener('click', function() {
-      selectCalendarDay(year, month, i);
-    });
+    // Clear calendar
+    calendarDays.innerHTML = '';
     
-    calendarDays.appendChild(dayEl);
-  }
-  
-  // Next month's days
-  const totalCells = 42; // 6 rows of 7 days
-  const remainingCells = totalCells - (firstDay + daysInMonth);
-  for (let i = 1; i <= remainingCells; i++) {
-    const dayEl = createCalendarDay(i, 'next-month', false, false);
-    calendarDays.appendChild(dayEl);
-  }
-  
-  // Select today if it's in the current month
-  if (isCurrentMonth) {
-    selectCalendarDay(year, month, todayDate);
-  } else {
-    // Select the first day with medications, or the first day
-    const firstMedDay = medsOnDays.length > 0 ? medsOnDays[0] : 1;
-    selectCalendarDay(year, month, firstMedDay);
+    // Get first day of month and number of days
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    
+    // Get days with medications
+    const medsOnDays = getMedicationDays(medicines, year, month);
+    
+    // Get today's date
+    const today = new Date();
+    const isCurrentMonth = today.getMonth() === month && today.getFullYear() === year;
+    const todayDate = today.getDate();
+    
+    // Previous month's days
+    const prevMonthDays = new Date(year, month, 0).getDate();
+    for (let i = firstDay - 1; i >= 0; i--) {
+      const day = prevMonthDays - i;
+      const dayEl = createCalendarDay(day, 'prev-month', false, false);
+      calendarDays.appendChild(dayEl);
+    }
+    
+    // Current month's days
+    for (let i = 1; i <= daysInMonth; i++) {
+      const isToday = isCurrentMonth && i === todayDate;
+      const hasMeds = medsOnDays.includes(i);
+      const dayEl = createCalendarDay(i, 'current-month', isToday, hasMeds);
+      
+      // Add click event
+      dayEl.addEventListener('click', function() {
+        selectCalendarDay(medicines, year, month, i);
+      });
+      
+      calendarDays.appendChild(dayEl);
+    }
+    
+    // Next month's days
+    const totalCells = 42; // 6 rows of 7 days
+    const remainingCells = totalCells - (firstDay + daysInMonth);
+    for (let i = 1; i <= remainingCells; i++) {
+      const dayEl = createCalendarDay(i, 'next-month', false, false);
+      calendarDays.appendChild(dayEl);
+    }
+    
+    // Select today if it's in the current month
+    if (isCurrentMonth) {
+      selectCalendarDay(medicines, year, month, todayDate);
+    } else {
+      // Select the first day with medications, or the first day
+      const firstMedDay = medsOnDays.length > 0 ? medsOnDays[0] : 1;
+      selectCalendarDay(medicines, year, month, firstMedDay);
+    }
+  } catch (error) {
+    console.error('Error rendering calendar:', error);
+    calendarDays.innerHTML = `
+      <div class="error-state">
+        <p>Error loading calendar. Please try again later.</p>
+        <button class="secondary-btn" onclick="initCalendar()">Retry</button>
+      </div>
+    `;
   }
 }
 
@@ -886,8 +973,7 @@ function createCalendarDay(day, monthClass, isToday, hasMeds) {
 }
 
 // Get days with medications for a specific month
-function getMedicationDays(year, month) {
-  const medicines = JSON.parse(localStorage.getItem('medicines') || '[]');
+function getMedicationDays(medicines, year, month) {
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const result = [];
   
@@ -908,7 +994,7 @@ function getMedicationDays(year, month) {
 }
 
 // Select a day in the calendar
-function selectCalendarDay(year, month, day) {
+function selectCalendarDay(medicines, year, month, day) {
   // Update selected date display
   const selectedDateEl = document.getElementById('selected-date');
   if (selectedDateEl) {
@@ -930,19 +1016,16 @@ function selectCalendarDay(year, month, day) {
   });
   
   // Display medications for the selected day
-  displayDaySchedule(year, month, day);
+  displayDaySchedule(medicines, year, month, day);
 }
 
 // Display medications for a specific day
-function displayDaySchedule(year, month, day) {
+function displayDaySchedule(medicines, year, month, day) {
   const scheduleListEl = document.getElementById('schedule-list');
   if (!scheduleListEl) return;
   
   // Clear list
   scheduleListEl.innerHTML = '';
-  
-  // Get medicines from local storage
-  const medicines = JSON.parse(localStorage.getItem('medicines') || '[]');
   
   // Get day of week
   const date = new Date(year, month, day);
@@ -1004,57 +1087,71 @@ function displayDaySchedule(year, month, day) {
   });
 }
 
-// Update profile statistics
-function updateProfileStats() {
-  const medicines = JSON.parse(localStorage.getItem('medicines') || '[]');
-  
-  // Update active medications count
-  const activeMedsEl = document.querySelector('.stat-value');
-  if (activeMedsEl) {
-    activeMedsEl.textContent = medicines.length;
-  }
-  
-  // Calculate adherence rate (this would normally be more complex)
-  const taken = JSON.parse(localStorage.getItem('taken') || '{}');
-  const today = new Date().toDateString();
-  const yesterday = new Date();
-  yesterday.setDate(yesterday.getDate() - 1);
-  const yesterdayStr = yesterday.toDateString();
-  
-  // Simple adherence calculation based on last two days
-  let scheduled = 0;
-  let completed = 0;
-  
-  // Count today and yesterday's scheduled meds
-  const dayOfWeek = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'][new Date().getDay()];
-  const yesterdayDayOfWeek = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'][yesterday.getDay()];
-  
-  medicines.forEach(med => {
-    if (med.days.includes(dayOfWeek)) {
-      scheduled += med.timeSlots.length;
-      
-      // Count completed
-      if (taken[today] && taken[today][med.id]) {
-        completed += taken[today][med.id].length;
-      }
+// Load profile data
+async function loadProfileData() {
+  try {
+    // Get profile data
+    const profile = await api.getUserProfile();
+    
+    // Update profile header
+    const profileName = document.querySelector('.profile-header h2');
+    const profileEmail = document.querySelector('.profile-header p');
+    
+    if (profileName && profile.name) {
+      profileName.textContent = profile.name;
     }
     
-    if (med.days.includes(yesterdayDayOfWeek)) {
-      scheduled += med.timeSlots.length;
-      
-      // Count completed
-      if (taken[yesterdayStr] && taken[yesterdayStr][med.id]) {
-        completed += taken[yesterdayStr][med.id].length;
-      }
+    if (profileEmail && profile.email) {
+      profileEmail.textContent = profile.email;
     }
-  });
-  
-  // Calculate rate
-  let adherenceRate = scheduled > 0 ? Math.round((completed / scheduled) * 100) : 100;
-  
-  // Update UI
-  const adherenceRateEl = document.querySelectorAll('.stat-value')[1];
-  if (adherenceRateEl) {
-    adherenceRateEl.textContent = `${adherenceRate}%`;
+    
+    // Get adherence stats
+    const stats = await api.getAdherenceStats();
+    
+    // Update stats on UI
+    const activeMedsEl = document.querySelectorAll('.stat-value')[0];
+    const adherenceRateEl = document.querySelectorAll('.stat-value')[1];
+    
+    if (activeMedsEl && stats.activeMedicines !== undefined) {
+      activeMedsEl.textContent = stats.activeMedicines;
+    }
+    
+    if (adherenceRateEl && stats.adherenceRate !== undefined) {
+      adherenceRateEl.textContent = `${stats.adherenceRate}%`;
+    }
+  } catch (error) {
+    console.error('Error loading profile data:', error);
+    showToast('Error loading profile data', 'error');
   }
+}
+
+// Add connection status indicator
+function addConnectionStatusIndicator() {
+  // Create status indicator element
+  const statusIndicator = document.createElement('div');
+  statusIndicator.className = 'connection-status';
+  statusIndicator.id = 'connection-status';
+  
+  // Add to DOM
+  document.body.appendChild(statusIndicator);
+  
+  // Update status based on network state
+  function updateConnectionStatus() {
+    if (navigator.onLine) {
+      statusIndicator.classList.remove('offline');
+      statusIndicator.classList.add('online');
+      statusIndicator.title = 'Connected to server';
+    } else {
+      statusIndicator.classList.remove('online');
+      statusIndicator.classList.add('offline');
+      statusIndicator.title = 'Offline mode - Changes will sync when online';
+    }
+  }
+  
+  // Set initial status
+  updateConnectionStatus();
+  
+  // Add event listeners for online/offline events
+  window.addEventListener('online', updateConnectionStatus);
+  window.addEventListener('offline', updateConnectionStatus);
 }
