@@ -12,75 +12,64 @@
 <body>
   <div class="app-container">
     <header>
-      <h1>My Profile</h1>
+      <h1>Profile</h1>
     </header>
 
     <main>
-      <div class="profile-header">
+      <div class="profile-section user-info">
         <div class="profile-avatar">
-          <i class="fas fa-user"></i>
+          <i class="fas fa-user-circle"></i>
         </div>
-        <h2>Loading...</h2>
-        <p>Loading...</p>
-      </div>
-
-      <div class="profile-stats">
-        <div class="stat-card">
-          <span class="stat-value">--</span>
-          <span class="stat-label">Active Medications</span>
-        </div>
-        <div class="stat-card">
-          <span class="stat-value">--%</span>
-          <span class="stat-label">Adherence Rate</span>
+        <div class="profile-details">
+          <h2 id="user-name">Loading...</h2>
+          <p id="user-email">Loading...</p>
         </div>
       </div>
 
-      <div class="profile-sections">
-        <div class="profile-section">
-          <div class="section-header">
+      <div class="profile-section">
+        <h3>Medication Statistics</h3>
+        <div class="stat-cards">
+          <div class="stat-card">
+            <div class="stat-icon">
+              <i class="fas fa-chart-pie"></i>
+            </div>
+            <div class="stat-info">
+              <h4>Adherence Rate</h4>
+              <p id="adherence-rate">--</p>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">
+              <i class="fas fa-pills"></i>
+            </div>
+            <div class="stat-info">
+              <h4>Active Medications</h4>
+              <p id="active-medications">--</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="profile-section">
+        <h3>Account Settings</h3>
+        <div class="settings-list">
+          <button id="change-password-btn" class="settings-option">
+            <i class="fas fa-key"></i>
+            <span>Change Password</span>
+            <i class="fas fa-chevron-right"></i>
+          </button>
+          <button id="notification-settings-btn" class="settings-option">
             <i class="fas fa-bell"></i>
-            <h3>Notification Settings</h3>
+            <span>Notification Settings</span>
             <i class="fas fa-chevron-right"></i>
-          </div>
-        </div>
-        
-        <div class="profile-section">
-          <div class="section-header">
-            <i class="fas fa-lock"></i>
-            <h3>Privacy & Security</h3>
+          </button>
+          <button id="logout-btn" class="settings-option">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Logout</span>
             <i class="fas fa-chevron-right"></i>
-          </div>
-        </div>
-        
-        <div class="profile-section">
-          <div class="section-header">
-            <i class="fas fa-cog"></i>
-            <h3>General Settings</h3>
-            <i class="fas fa-chevron-right"></i>
-          </div>
-        </div>
-        
-        <div class="profile-section">
-          <div class="section-header">
-            <i class="fas fa-question-circle"></i>
-            <h3>Help & Support</h3>
-            <i class="fas fa-chevron-right"></i>
-          </div>
-        </div>
-        
-        <div class="profile-section">
-          <div class="section-header">
-            <i class="fas fa-info-circle"></i>
-            <h3>About MediTrack</h3>
-            <i class="fas fa-chevron-right"></i>
-          </div>
+          </button>
         </div>
       </div>
-
-      <button class="logout-btn">
-        <i class="fas fa-sign-out-alt"></i>
-        Log Out
-      </button>
     </main>
 
     <nav class="bottom-nav">
@@ -96,6 +85,12 @@
     <span id="toast-message"></span>
   </div>
 
+  <div id="offline-banner" class="offline-banner">
+    <i class="fas fa-wifi-slash"></i>
+    <span>You are offline. Some features may be limited.</span>
+  </div>
+
   <script src="script.js" type="module"></script>
+  <script src="js/auth.js" type="module"></script>
 </body>
 </html>

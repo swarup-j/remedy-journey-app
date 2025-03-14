@@ -15,6 +15,23 @@ const ENDPOINTS = {
   TAKEN: '/medicines/taken',
 };
 
+// Get auth token from local storage
+const getAuthToken = () => localStorage.getItem('authToken');
+
+// Create auth headers
+const createAuthHeaders = () => {
+  const token = getAuthToken();
+  const headers = {
+    'Content-Type': 'application/json',
+  };
+  
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  
+  return headers;
+};
+
 // Error handler
 const handleApiError = (error) => {
   console.error('API Error:', error);
@@ -33,10 +50,21 @@ const handleApiError = (error) => {
 // Fetch all medicines
 const fetchMedicines = async () => {
   try {
-    const response = await fetch(`${API_BASE_URL}${ENDPOINTS.MEDICINES}`);
+    const response = await fetch(`${API_BASE_URL}${ENDPOINTS.MEDICINES}`, {
+      headers: createAuthHeaders()
+    });
+    
     if (!response.ok) {
+      // Handle unauthorized access
+      if (response.status === 401) {
+        // Clear invalid token
+        localStorage.removeItem('authToken');
+        window.location.href = 'login.html';
+        throw new Error('Session expired. Please login again.');
+      }
       throw new Error(`HTTP error! Status: ${response.status}`);
     }
+    
     return await response.json();
   } catch (error) {
     console.error('Error fetching medicines:', error);
@@ -47,10 +75,14 @@ const fetchMedicines = async () => {
 // Fetch single medicine details
 const fetchMedicineById = async (id) => {
   try {
-    const response = await fetch(`${API_BASE_URL}${ENDPOINTS.MEDICINE.replace(':id', id)}`);
+    const response = await fetch(`${API_BASE_URL}${ENDPOINTS.MEDICINE.replace(':id', id)}`, {
+      headers: createAuthHeaders()
+    });
+    
     if (!response.ok) {
       throw new Error(`HTTP error! Status: ${response.status}`);
     }
+    
     return await response.json();
   } catch (error) {
     console.error(`Error fetching medicine with ID ${id}:`, error);
@@ -63,9 +95,7 @@ const addMedicine = async (medicine) => {
   try {
     const response = await fetch(`${API_BASE_URL}${ENDPOINTS.MEDICINES}`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: createAuthHeaders(),
       body: JSON.stringify(medicine),
     });
     
@@ -85,9 +115,7 @@ const updateMedicine = async (id, medicine) => {
   try {
     const response = await fetch(`${API_BASE_URL}${ENDPOINTS.MEDICINE.replace(':id', id)}`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: createAuthHeaders(),
       body: JSON.stringify(medicine),
     });
     
@@ -107,6 +135,7 @@ const deleteMedicine = async (id) => {
   try {
     const response = await fetch(`${API_BASE_URL}${ENDPOINTS.MEDICINE.replace(':id', id)}`, {
       method: 'DELETE',
+      headers: createAuthHeaders()
     });
     
     if (!response.ok) {
@@ -125,9 +154,7 @@ const markMedicineAsTaken = async (medicineId, date, timeSlot) => {
   try {
     const response = await fetch(`${API_BASE_URL}${ENDPOINTS.TAKEN}`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: createAuthHeaders(),
       body: JSON.stringify({
         medicineId,
         date,
@@ -149,10 +176,14 @@ const markMedicineAsTaken = async (medicineId, date, timeSlot) => {
 // Get adherence data for profile statistics
 const getAdherenceStats = async () => {
   try {
-    const response = await fetch(`${API_BASE_URL}${ENDPOINTS.ADHERENCE}`);
+    const response = await fetch(`${API_BASE_URL}${ENDPOINTS.ADHERENCE}`, {
+      headers: createAuthHeaders()
+    });
+    
     if (!response.ok) {
       throw new Error(`HTTP error! Status: ${response.status}`);
     }
+    
     return await response.json();
   } catch (error) {
     console.error('Error fetching adherence stats:', error);
@@ -163,13 +194,24 @@ const getAdherenceStats = async () => {
 // Get user profile information
 const getUserProfile = async () => {
   try {
-    const response = await fetch(`${API_BASE_URL}${ENDPOINTS.PROFILE}`);
+    const response = await fetch(`${API_BASE_URL}${ENDPOINTS.PROFILE}`, {
+      headers: createAuthHeaders()
+    });
+    
     if (!response.ok) {
       throw new Error(`HTTP error! Status: ${response.status}`);
     }
+    
     return await response.json();
   } catch (error) {
     console.error('Error fetching user profile:', error);
+    
+    // Fallback to local storage if available
+    const storedUser = localStorage.getItem('currentUser');
+    if (storedUser) {
+      return JSON.parse(storedUser);
+    }
+    
     return { 
       name: 'User',
       email: 'user@example.com'
@@ -179,6 +221,8 @@ const getUserProfile = async () => {
 
 // Export all API functions
 const api = {
+  API_BASE_URL,
+  ENDPOINTS,
   fetchMedicines,
   fetchMedicineById,
   addMedicine,
@@ -187,7 +231,7 @@ const api = {
   markMedicineAsTaken,
   getAdherenceStats,
   getUserProfile,
-  ENDPOINTS
+  createAuthHeaders
 };
 
 export default api;

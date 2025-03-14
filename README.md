@@ -53,12 +53,31 @@ The app uses the following API endpoints for communication with the backend:
 }
 ```
 
+### Authentication Response
+```json
+{
+  "token": "string",
+  "name": "string",
+  "email": "string"
+}
+```
+
+### Registration Request
+```json
+{
+  "name": "string",
+  "email": "string",
+  "password": "string"
+}
+```
+
 ## Offline Support
 
 The application has built-in offline support, storing data locally when the backend server is unavailable. Changes are synchronized when the connection is restored.
 
 ## Features
 
+- User authentication (login/register)
 - View and manage all medications
 - Schedule daily, weekly, or custom medication routines
 - Track adherence to medication schedules
@@ -74,3 +93,4 @@ The application has built-in offline support, storing data locally when the back
 - API integration with fetch API
 - Local storage fallback for offline use
 - Mobile-first responsive design
+- Token-based authentication
