@@ -1,8 +1,8 @@
 
 /* Global Styles */
 :root {
-  --primary-color: #8B5CF6;
-  --primary-light: #D6BCFA;
+  --primary-color: #4CAF50;
+  --primary-light: #A5D6A7;
   --accent-color: #F2FCE2;
   --dark-gray: #333333;
   --medium-gray: #666666;
@@ -26,7 +26,7 @@
 body {
   font-family: 'Poppins', sans-serif;
   color: var(--dark-gray);
-  background-color: var(--very-light-gray);
+  background-color: var(--primary-light);
   line-height: 1.6;
 }
 
@@ -36,7 +36,7 @@ body {
   padding: 0;
   position: relative;
   min-height: 100vh;
-  background-color: var(--white);
+  background-color: var(--primary-light);
   box-shadow: var(--shadow);
 }
 
@@ -47,7 +47,7 @@ a {
 
 /* Header Styles */
 header {
-  background-color: var(--white);
+  background-color: var(--primary-color);
   padding: 20px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
   position: sticky;
@@ -56,17 +56,25 @@ header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  color: var(--white);
 }
 
 header h1 {
-  color: var(--primary-color);
+  color: var(--white);
   font-size: 1.5rem;
   font-weight: 600;
 }
 
+.greeting-text {
+  font-size: 1.2rem;
+  font-weight: 400;
+  margin-top: 5px;
+  color: var(--white);
+}
+
 .date-display {
   font-size: 0.9rem;
-  color: var(--medium-gray);
+  color: var(--white);
 }
 
 /* Main Content */
@@ -158,7 +166,7 @@ h2 {
 }
 
 .take-btn:hover {
-  background-color: #7c4dff;
+  background-color: #43A047;
 }
 
 /* Bottom Navigation */
@@ -209,13 +217,44 @@ h2 {
   background-color: var(--primary-color);
   border-radius: 50%;
   color: white;
-  box-shadow: 0 3px 10px rgba(139, 92, 246, 0.3);
+  box-shadow: 0 3px 10px rgba(76, 175, 80, 0.3);
   font-size: 1.5rem;
   transition: transform 0.3s;
 }
 
 .add-medicine-btn a:hover {
   transform: scale(1.05);
+}
+
+/* Medication List Styles */
+.medication-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.medication-item {
+  background: var(--white);
+  border-radius: var(--border-radius);
+  padding: 15px;
+  box-shadow: var(--shadow);
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.medication-pill-icon {
+  width: 50px;
+  height: 50px;
+  margin-right: 15px;
+}
+
+.medication-checkbox {
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--medium-gray);
+  border-radius: 5px;
+  margin-left: auto;
 }
 
 /* Modal Styles */
@@ -441,12 +480,14 @@ textarea {
 .form-header {
   display: flex;
   align-items: center;
+  background-color: var(--primary-color);
+  color: var(--white);
 }
 
 .back-btn {
   margin-right: 15px;
   font-size: 1.2rem;
-  color: var(--primary-color);
+  color: var(--white);
 }
 
 /* Search Styles */
@@ -468,7 +509,7 @@ textarea {
 .icon-btn {
   background: none;
   border: none;
-  color: var(--primary-color);
+  color: var(--white);
   font-size: 1.2rem;
   cursor: pointer;
   width: 40px;
@@ -502,6 +543,6 @@ textarea {
   to { opacity: 1; transform: translateY(0); }
 }
 
-.medicine-card, .medicine-item {
+.medicine-card, .medicine-item, .medication-item {
   animation: fadeIn 0.3s ease-out;
 }

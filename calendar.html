@@ -1,0 +1,59 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calendar - MediTrack</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <div class="app-container">
+    <header>
+      <h1>Calendar</h1>
+      <div class="date-display" id="current-date"></div>
+    </header>
+
+    <main>
+      <div class="calendar-container" id="calendar-container">
+        <!-- Calendar will be generated with JavaScript -->
+      </div>
+
+      <section class="day-schedule">
+        <h2>Schedule for <span id="selected-date">Today</span></h2>
+        <div class="medication-list" id="day-medications">
+          <div class="medication-item">
+            <img src="public/lovable-uploads/e55297b4-0990-479a-a0ad-003f2b59588c.png" alt="Pill" class="medication-pill-icon">
+            <div class="medicine-info">
+              <h3>Paracitamol</h3>
+              <p>after dinner</p>
+              <p>10:00pm</p>
+            </div>
+            <div class="medication-checkbox"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <div class="add-medicine-btn">
+      <a href="medicine-form.html"><i class="fas fa-plus"></i></a>
+    </div>
+
+    <nav class="bottom-nav">
+      <a href="index.html"><i class="fas fa-home"></i><span>home</span></a>
+      <a href="calendar.html" class="active"><i class="fas fa-calendar-alt"></i><span>calender</span></a>
+      <a href="medicine-form.html"><i class="fas fa-plus"></i><span>add</span></a>
+      <a href="profile.html"><i class="fas fa-user"></i><span>profile</span></a>
+    </nav>
+  </div>
+
+  <div id="toast-notification" class="toast-notification">
+    <i class="fas fa-check-circle"></i>
+    <span id="toast-message"></span>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

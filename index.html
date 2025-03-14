@@ -12,59 +12,65 @@
 <body>
   <div class="app-container">
     <header>
-      <h1>MediTrack</h1>
-      <div class="date-display" id="current-date"></div>
+      <div>
+        <h1>Hello, User</h1>
+        <div class="greeting-text" id="greeting-text">Good Morning! How's your day?</div>
+      </div>
+      <button id="menu-btn" class="icon-btn"><i class="fas fa-bars"></i></button>
     </header>
 
     <main>
       <section class="today-section">
         <h2>Today's Medications</h2>
         <div class="medication-list" id="today-list">
-          <!-- Medications will be added here dynamically -->
+          <div class="medication-item">
+            <img src="public/lovable-uploads/e55297b4-0990-479a-a0ad-003f2b59588c.png" alt="Pill" class="medication-pill-icon">
+            <div class="medicine-info">
+              <h3>Paracitamol</h3>
+              <p>after dinner 10:00pm</p>
+            </div>
+          </div>
         </div>
       </section>
 
       <section class="upcoming-section">
         <h2>Upcoming</h2>
-        <div class="timeline">
-          <div class="timeline-item">
-            <div class="time">8:00 AM</div>
-            <div class="medicine-cards">
-              <div class="medicine-card">
-                <div class="pill-icon"><i class="fas fa-pills"></i></div>
-                <div class="medicine-info">
-                  <h3>Ibuprofen</h3>
-                  <p>1 tablet</p>
-                </div>
-                <button class="take-btn">Take</button>
-              </div>
+        <div class="medication-list">
+          <div class="medication-item">
+            <img src="public/lovable-uploads/e55297b4-0990-479a-a0ad-003f2b59588c.png" alt="Pill" class="medication-pill-icon">
+            <div class="medicine-info">
+              <h3>Paracitamol</h3>
+              <p>after dinner</p>
+              <p>10:00pm</p>
             </div>
+            <div class="medication-checkbox"></div>
           </div>
-          <div class="timeline-item">
-            <div class="time">12:00 PM</div>
-            <div class="medicine-cards">
-              <div class="medicine-card">
-                <div class="pill-icon"><i class="fas fa-pills"></i></div>
-                <div class="medicine-info">
-                  <h3>Vitamin D</h3>
-                  <p>1 capsule</p>
-                </div>
-                <button class="take-btn">Take</button>
-              </div>
+          <div class="medication-item">
+            <img src="public/lovable-uploads/e55297b4-0990-479a-a0ad-003f2b59588c.png" alt="Pill" class="medication-pill-icon">
+            <div class="medicine-info">
+              <h3>Paracitamol</h3>
+              <p>after dinner</p>
+              <p>10:00pm</p>
             </div>
+            <div class="medication-checkbox"></div>
           </div>
-          <div class="timeline-item">
-            <div class="time">8:00 PM</div>
-            <div class="medicine-cards">
-              <div class="medicine-card">
-                <div class="pill-icon"><i class="fas fa-pills"></i></div>
-                <div class="medicine-info">
-                  <h3>Antibiotic</h3>
-                  <p>1 tablet with food</p>
-                </div>
-                <button class="take-btn">Take</button>
-              </div>
+          <div class="medication-item">
+            <img src="public/lovable-uploads/e55297b4-0990-479a-a0ad-003f2b59588c.png" alt="Pill" class="medication-pill-icon">
+            <div class="medicine-info">
+              <h3>Paracitamol</h3>
+              <p>after dinner</p>
+              <p>10:00pm</p>
             </div>
+            <div class="medication-checkbox"></div>
+          </div>
+          <div class="medication-item">
+            <img src="public/lovable-uploads/e55297b4-0990-479a-a0ad-003f2b59588c.png" alt="Pill" class="medication-pill-icon">
+            <div class="medicine-info">
+              <h3>Paracitamol</h3>
+              <p>after dinner</p>
+              <p>10:00pm</p>
+            </div>
+            <div class="medication-checkbox"></div>
           </div>
         </div>
       </section>
@@ -75,37 +81,11 @@
     </div>
 
     <nav class="bottom-nav">
-      <a href="index.html" class="active"><i class="fas fa-home"></i><span>Home</span></a>
-      <a href="medicine-list.html"><i class="fas fa-list"></i><span>Medicines</span></a>
-      <a href="#" id="notifications-btn"><i class="fas fa-bell"></i><span>Reminders</span></a>
-      <a href="#" id="profile-btn"><i class="fas fa-user"></i><span>Profile</span></a>
+      <a href="index.html" class="active"><i class="fas fa-home"></i><span>home</span></a>
+      <a href="calendar.html"><i class="fas fa-calendar-alt"></i><span>calender</span></a>
+      <a href="medicine-form.html"><i class="fas fa-plus"></i><span>add</span></a>
+      <a href="profile.html"><i class="fas fa-user"></i><span>profile</span></a>
     </nav>
-  </div>
-
-  <div id="reminder-modal" class="modal">
-    <div class="modal-content">
-      <span class="close-btn">&times;</span>
-      <h2>Set Reminder</h2>
-      <form id="reminder-form">
-        <div class="form-group">
-          <label for="reminder-time">Time</label>
-          <input type="time" id="reminder-time" required>
-        </div>
-        <div class="form-group">
-          <label>Repeat</label>
-          <div class="day-selector">
-            <label class="day"><input type="checkbox" value="mon">M</label>
-            <label class="day"><input type="checkbox" value="tue">T</label>
-            <label class="day"><input type="checkbox" value="wed">W</label>
-            <label class="day"><input type="checkbox" value="thu">T</label>
-            <label class="day"><input type="checkbox" value="fri">F</label>
-            <label class="day"><input type="checkbox" value="sat">S</label>
-            <label class="day"><input type="checkbox" value="sun">S</label>
-          </div>
-        </div>
-        <button type="submit" class="primary-btn">Save Reminder</button>
-      </form>
-    </div>
   </div>
 
   <div id="toast-notification" class="toast-notification">
