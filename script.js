@@ -9,6 +9,21 @@ document.addEventListener('DOMContentLoaded', function() {
     currentDateEl.textContent = now.toLocaleDateString('en-US', options);
   }
 
+  // Set greeting based on time of day
+  const greetingEl = document.getElementById('greeting');
+  if (greetingEl) {
+    const hour = new Date().getHours();
+    let greeting = 'Good morning!';
+    
+    if (hour >= 12 && hour < 18) {
+      greeting = 'Good afternoon!';
+    } else if (hour >= 18) {
+      greeting = 'Good evening!';
+    }
+    
+    greetingEl.textContent = greeting;
+  }
+
   // Initialize local storage
   if (!localStorage.getItem('medicines')) {
     localStorage.setItem('medicines', JSON.stringify([]));
@@ -20,6 +35,29 @@ document.addEventListener('DOMContentLoaded', function() {
   // Handle medicine form submission
   const medicineForm = document.getElementById('medicine-form');
   if (medicineForm) {
+    // Check if editing an existing medicine
+    const urlParams = new URLSearchParams(window.location.search);
+    const medicineId = urlParams.get('id');
+    
+    if (medicineId) {
+      // Update form title
+      const formTitle = document.getElementById('form-title');
+      if (formTitle) {
+        formTitle.textContent = 'Edit Medicine';
+      }
+      
+      // Populate form with medicine data
+      populateMedicineForm(medicineId);
+    }
+    
+    // Medicine type change handler
+    const medicineTypeSelect = document.getElementById('medicine-type');
+    if (medicineTypeSelect) {
+      medicineTypeSelect.addEventListener('change', function() {
+        updatePillIcon(this.value);
+      });
+    }
+    
     // Frequency change handler
     const frequencySelect = document.getElementById('frequency');
     frequencySelect.addEventListener('change', function() {
@@ -55,6 +93,7 @@ document.addEventListener('DOMContentLoaded', function() {
       
       // Get form data
       const medicineName = document.getElementById('medicine-name').value;
+      const medicineType = document.getElementById('medicine-type').value;
       const dosage = document.getElementById('dosage').value;
       const frequency = document.getElementById('frequency').value;
       const notes = document.getElementById('notes').value;
@@ -80,28 +119,27 @@ document.addEventListener('DOMContentLoaded', function() {
       
       // Create medicine object
       const medicine = {
-        id: Date.now().toString(),
+        id: medicineId || Date.now().toString(),
         name: medicineName,
+        type: medicineType || 'tablet',
         dosage: dosage,
         frequency: frequency,
         timeSlots: timeSlots,
         days: days,
         duration: duration,
         notes: notes,
-        created: new Date().toISOString()
+        created: medicineId ? getMedicineCreatedDate(medicineId) : new Date().toISOString()
       };
       
       // Save to local storage
-      const medicines = JSON.parse(localStorage.getItem('medicines') || '[]');
-      medicines.push(medicine);
-      localStorage.setItem('medicines', JSON.stringify(medicines));
+      saveMedicine(medicine, !!medicineId);
       
       // Show toast notification
-      showToast('Medicine added successfully');
+      showToast(medicineId ? 'Medicine updated successfully' : 'Medicine added successfully');
       
-      // Redirect back to home page
+      // Redirect back to medicine list page
       setTimeout(() => {
-        window.location.href = 'index.html';
+        window.location.href = 'medicine-list.html';
       }, 1500);
     });
   }
@@ -109,6 +147,22 @@ document.addEventListener('DOMContentLoaded', function() {
   // Handle medicine list page
   if (currentPage === 'medicine-list.html') {
     renderMedicineList();
+    
+    // Filter buttons
+    const filterBtns = document.querySelectorAll('.filter-btn');
+    if (filterBtns.length > 0) {
+      filterBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+          // Remove active class from all buttons
+          filterBtns.forEach(b => b.classList.remove('active'));
+          // Add active class to clicked button
+          this.classList.add('active');
+          // Apply filter
+          const filter = this.dataset.filter;
+          renderMedicineList(null, filter);
+        });
+      });
+    }
     
     // Search functionality
     const searchBtn = document.getElementById('search-btn');
@@ -130,7 +184,8 @@ document.addEventListener('DOMContentLoaded', function() {
       
       searchInput.addEventListener('input', function() {
         const searchTerm = this.value.toLowerCase();
-        renderMedicineList(searchTerm);
+        const activeFilter = document.querySelector('.filter-btn.active')?.dataset.filter || 'all';
+        renderMedicineList(searchTerm, activeFilter);
       });
     }
     
@@ -177,50 +232,52 @@ document.addEventListener('DOMContentLoaded', function() {
         e.target.disabled = true;
       }
     });
+  }
 
-    // Reminder modal
-    const reminderBtn = document.getElementById('notifications-btn');
-    const reminderModal = document.getElementById('reminder-modal');
-    const closeReminderBtn = reminderModal.querySelector('.close-btn');
-    const reminderForm = document.getElementById('reminder-form');
+  // Handle calendar page
+  if (currentPage === 'calendar.html') {
+    // Initialize calendar
+    initCalendar();
     
-    if (reminderBtn && reminderModal && closeReminderBtn && reminderForm) {
-      reminderBtn.addEventListener('click', function() {
-        reminderModal.style.display = 'flex';
+    // Calendar navigation
+    const prevMonthBtn = document.getElementById('prev-month');
+    const nextMonthBtn = document.getElementById('next-month');
+    
+    if (prevMonthBtn && nextMonthBtn) {
+      prevMonthBtn.addEventListener('click', function() {
+        changeMonth(-1);
       });
       
-      closeReminderBtn.addEventListener('click', function() {
-        reminderModal.style.display = 'none';
+      nextMonthBtn.addEventListener('click', function() {
+        changeMonth(1);
       });
-      
-      reminderForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const reminderTime = document.getElementById('reminder-time').value;
-        
-        // Get selected days
-        const days = [];
-        const dayCheckboxes = document.querySelectorAll('#reminder-modal .day input[type="checkbox"]');
-        dayCheckboxes.forEach(checkbox => {
-          if (checkbox.checked) {
-            days.push(checkbox.value);
-          }
-        });
-        
-        // Save reminder
-        const reminders = JSON.parse(localStorage.getItem('reminders') || '[]');
-        reminders.push({
-          id: Date.now().toString(),
-          time: reminderTime,
-          days: days
-        });
-        localStorage.setItem('reminders', JSON.stringify(reminders));
-        
-        // Show toast
-        showToast('Reminder set successfully');
-        
-        // Close modal
-        reminderModal.style.display = 'none';
+    }
+  }
+
+  // Handle profile page
+  if (currentPage === 'profile.html') {
+    // Load profile stats
+    updateProfileStats();
+    
+    // Add click events to settings sections
+    const profileSections = document.querySelectorAll('.profile-section');
+    profileSections.forEach(section => {
+      section.addEventListener('click', function() {
+        // This would normally navigate to the specific settings page
+        // For now, just show a toast
+        showToast('This feature will be available soon');
+      });
+    });
+    
+    // Logout button
+    const logoutBtn = document.querySelector('.logout-btn');
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', function() {
+        // This would normally handle logout logic
+        showToast('Logged out successfully');
+        setTimeout(() => {
+          window.location.href = 'index.html';
+        }, 1500);
       });
     }
   }
@@ -277,8 +334,87 @@ function addTimeSlot() {
   timeSlots.appendChild(timeSlotTemplate);
 }
 
+// Update pill icon based on medicine type
+function updatePillIcon(type) {
+  // This would normally update the pill icon based on medicine type
+  // But it's not implemented in the current UI
+}
+
+// Populate medicine form with existing data
+function populateMedicineForm(medicineId) {
+  const medicines = JSON.parse(localStorage.getItem('medicines') || '[]');
+  const medicine = medicines.find(med => med.id === medicineId);
+  
+  if (!medicine) return;
+  
+  // Set form values
+  document.getElementById('medicine-name').value = medicine.name;
+  if (medicine.type && document.getElementById('medicine-type')) {
+    document.getElementById('medicine-type').value = medicine.type;
+  }
+  document.getElementById('dosage').value = medicine.dosage;
+  document.getElementById('frequency').value = medicine.frequency;
+  document.getElementById('notes').value = medicine.notes || '';
+  document.getElementById('duration').value = medicine.duration;
+  
+  // Set days
+  const dayCheckboxes = document.querySelectorAll('.day input[type="checkbox"]');
+  dayCheckboxes.forEach(checkbox => {
+    checkbox.checked = medicine.days.includes(checkbox.value);
+  });
+  
+  // Set time slots
+  const timeSlots = document.getElementById('time-slots');
+  // Clear existing time slots
+  timeSlots.innerHTML = '';
+  
+  // Add time slots
+  medicine.timeSlots.forEach((time, index) => {
+    const timeSlot = document.createElement('div');
+    timeSlot.className = 'time-slot';
+    timeSlot.innerHTML = `
+      <input type="time" class="time-input" value="${time}" required>
+      ${index > 0 ? '<button type="button" class="remove-time"><i class="fas fa-times"></i></button>' : '<button type="button" class="remove-time hidden"><i class="fas fa-times"></i></button>'}
+    `;
+    
+    // Add remove event for non-first slots
+    if (index > 0) {
+      timeSlot.querySelector('.remove-time').addEventListener('click', function() {
+        this.parentElement.remove();
+      });
+    }
+    
+    timeSlots.appendChild(timeSlot);
+  });
+}
+
+// Get medicine created date
+function getMedicineCreatedDate(medicineId) {
+  const medicines = JSON.parse(localStorage.getItem('medicines') || '[]');
+  const medicine = medicines.find(med => med.id === medicineId);
+  return medicine ? medicine.created : new Date().toISOString();
+}
+
+// Save medicine to local storage
+function saveMedicine(medicine, isUpdate) {
+  const medicines = JSON.parse(localStorage.getItem('medicines') || '[]');
+  
+  if (isUpdate) {
+    // Update existing medicine
+    const index = medicines.findIndex(med => med.id === medicine.id);
+    if (index !== -1) {
+      medicines[index] = medicine;
+    }
+  } else {
+    // Add new medicine
+    medicines.push(medicine);
+  }
+  
+  localStorage.setItem('medicines', JSON.stringify(medicines));
+}
+
 // Render medicine list
-function renderMedicineList(searchTerm = '') {
+function renderMedicineList(searchTerm = '', filter = 'all') {
   const medicineListEl = document.getElementById('medicine-full-list');
   if (!medicineListEl) return;
   
@@ -288,10 +424,24 @@ function renderMedicineList(searchTerm = '') {
   // Get medicines from local storage
   const medicines = JSON.parse(localStorage.getItem('medicines') || '[]');
   
-  // Filter by search term if provided
-  const filteredMedicines = searchTerm ? 
-    medicines.filter(med => med.name.toLowerCase().includes(searchTerm)) : 
-    medicines;
+  // Apply filter
+  let filteredMedicines = medicines;
+  
+  if (filter === 'daily') {
+    filteredMedicines = medicines.filter(med => med.days.length === 7);
+  } else if (filter === 'weekly') {
+    filteredMedicines = medicines.filter(med => med.days.length > 0 && med.days.length < 7);
+  } else if (filter === 'other') {
+    filteredMedicines = medicines.filter(med => med.days.length === 0);
+  }
+  
+  // Apply search filter if provided
+  if (searchTerm) {
+    filteredMedicines = filteredMedicines.filter(med => 
+      med.name.toLowerCase().includes(searchTerm) ||
+      med.dosage.toLowerCase().includes(searchTerm)
+    );
+  }
   
   if (filteredMedicines.length === 0) {
     medicineListEl.innerHTML = `
@@ -310,8 +460,15 @@ function renderMedicineList(searchTerm = '') {
   filteredMedicines.forEach(medicine => {
     const medicineEl = document.createElement('div');
     medicineEl.className = 'medicine-item';
+    
+    // Determine icon based on medicine type
+    let iconClass = 'fa-pills';
+    if (medicine.type === 'capsule') iconClass = 'fa-capsules';
+    else if (medicine.type === 'liquid') iconClass = 'fa-prescription-bottle';
+    else if (medicine.type === 'injection') iconClass = 'fa-syringe';
+    
     medicineEl.innerHTML = `
-      <div class="pill-icon"><i class="fas fa-pills"></i></div>
+      <div class="pill-icon"><i class="fas ${iconClass}"></i></div>
       <div class="medicine-item-info">
         <h3>${medicine.name}</h3>
         <p>${medicine.dosage} - ${formatFrequency(medicine.frequency)}</p>
@@ -338,8 +495,18 @@ function openMedicineDetails(medicineId) {
   if (!medicine) return;
   
   const detailContent = document.getElementById('medicine-detail-content');
+  
+  // Determine icon based on medicine type
+  let iconClass = 'fa-pills';
+  if (medicine.type === 'capsule') iconClass = 'fa-capsules';
+  else if (medicine.type === 'liquid') iconClass = 'fa-prescription-bottle';
+  else if (medicine.type === 'injection') iconClass = 'fa-syringe';
+  
   detailContent.innerHTML = `
-    <h2>${medicine.name}</h2>
+    <div class="medicine-detail-header">
+      <div class="pill-icon"><i class="fas ${iconClass}"></i></div>
+      <h2>${medicine.name}</h2>
+    </div>
     <div class="medicine-details">
       <div>
         <i class="fas fa-prescription-bottle"></i>
@@ -357,6 +524,12 @@ function openMedicineDetails(medicineId) {
         <div>
           <i class="fas fa-hourglass"></i>
           <span>${medicine.timeSlots.map(formatTime).join(', ')}</span>
+        </div>
+      ` : ''}
+      ${medicine.duration ? `
+        <div>
+          <i class="fas fa-calendar-day"></i>
+          <span>${formatDuration(medicine.duration)}</span>
         </div>
       ` : ''}
       ${medicine.notes ? `
@@ -409,6 +582,7 @@ function renderTodayMedicines() {
     todayListEl.innerHTML = `
       <div class="empty-state">
         <p>No medications scheduled for today.</p>
+        <p>Add medicines to get started.</p>
       </div>
     `;
     return;
@@ -450,10 +624,16 @@ function renderTodayMedicines() {
       medicinesByTime[time].forEach(med => {
         const isTaken = checkIfTaken(med.id, time);
         
+        // Determine icon based on medicine type
+        let iconClass = 'fa-pills';
+        if (med.type === 'capsule') iconClass = 'fa-capsules';
+        else if (med.type === 'liquid') iconClass = 'fa-prescription-bottle';
+        else if (med.type === 'injection') iconClass = 'fa-syringe';
+        
         const medicineCardEl = document.createElement('div');
         medicineCardEl.className = 'medicine-card';
         medicineCardEl.innerHTML = `
-          <div class="pill-icon"><i class="fas fa-pills"></i></div>
+          <div class="pill-icon"><i class="fas ${iconClass}"></i></div>
           <div class="medicine-info">
             <h3>${med.name}</h3>
             <p>${med.dosage}</p>
@@ -521,6 +701,24 @@ function formatFrequency(frequency) {
   }
 }
 
+// Format duration
+function formatDuration(duration) {
+  switch (duration) {
+    case 'ongoing':
+      return 'Ongoing';
+    case '1-week':
+      return '1 week';
+    case '2-weeks':
+      return '2 weeks';
+    case '1-month':
+      return '1 month';
+    case 'custom':
+      return 'Custom duration';
+    default:
+      return duration;
+  }
+}
+
 // Format days
 function formatDays(days) {
   if (days.length === 7) {
@@ -573,5 +771,290 @@ function showToast(message) {
     setTimeout(() => {
       toast.style.display = 'none';
     }, 3000);
+  }
+}
+
+// Initialize calendar
+function initCalendar() {
+  const now = new Date();
+  renderCalendar(now.getFullYear(), now.getMonth());
+}
+
+// Change month
+function changeMonth(delta) {
+  const monthYear = document.getElementById('calendar-month-year').textContent;
+  const [month, year] = monthYear.split(' ');
+  
+  const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  let monthIndex = months.indexOf(month);
+  let yearNum = parseInt(year);
+  
+  monthIndex += delta;
+  
+  if (monthIndex < 0) {
+    monthIndex = 11;
+    yearNum--;
+  } else if (monthIndex > 11) {
+    monthIndex = 0;
+    yearNum++;
+  }
+  
+  renderCalendar(yearNum, monthIndex);
+}
+
+// Render calendar
+function renderCalendar(year, month) {
+  const calendarDays = document.getElementById('calendar-days');
+  const monthYearLabel = document.getElementById('calendar-month-year');
+  
+  if (!calendarDays || !monthYearLabel) return;
+  
+  const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  
+  monthYearLabel.textContent = `${months[month]} ${year}`;
+  
+  // Clear calendar
+  calendarDays.innerHTML = '';
+  
+  // Get first day of month and number of days
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  
+  // Get days with medications
+  const medsOnDays = getMedicationDays(year, month);
+  
+  // Get today's date
+  const today = new Date();
+  const isCurrentMonth = today.getMonth() === month && today.getFullYear() === year;
+  const todayDate = today.getDate();
+  
+  // Previous month's days
+  const prevMonthDays = new Date(year, month, 0).getDate();
+  for (let i = firstDay - 1; i >= 0; i--) {
+    const day = prevMonthDays - i;
+    const dayEl = createCalendarDay(day, 'prev-month', false, false);
+    calendarDays.appendChild(dayEl);
+  }
+  
+  // Current month's days
+  for (let i = 1; i <= daysInMonth; i++) {
+    const isToday = isCurrentMonth && i === todayDate;
+    const hasMeds = medsOnDays.includes(i);
+    const dayEl = createCalendarDay(i, 'current-month', isToday, hasMeds);
+    
+    // Add click event
+    dayEl.addEventListener('click', function() {
+      selectCalendarDay(year, month, i);
+    });
+    
+    calendarDays.appendChild(dayEl);
+  }
+  
+  // Next month's days
+  const totalCells = 42; // 6 rows of 7 days
+  const remainingCells = totalCells - (firstDay + daysInMonth);
+  for (let i = 1; i <= remainingCells; i++) {
+    const dayEl = createCalendarDay(i, 'next-month', false, false);
+    calendarDays.appendChild(dayEl);
+  }
+  
+  // Select today if it's in the current month
+  if (isCurrentMonth) {
+    selectCalendarDay(year, month, todayDate);
+  } else {
+    // Select the first day with medications, or the first day
+    const firstMedDay = medsOnDays.length > 0 ? medsOnDays[0] : 1;
+    selectCalendarDay(year, month, firstMedDay);
+  }
+}
+
+// Create calendar day element
+function createCalendarDay(day, monthClass, isToday, hasMeds) {
+  const dayEl = document.createElement('div');
+  dayEl.className = `calendar-day ${monthClass}`;
+  dayEl.textContent = day;
+  
+  if (isToday) {
+    dayEl.classList.add('today');
+  }
+  
+  if (hasMeds) {
+    dayEl.classList.add('has-meds');
+  }
+  
+  return dayEl;
+}
+
+// Get days with medications for a specific month
+function getMedicationDays(year, month) {
+  const medicines = JSON.parse(localStorage.getItem('medicines') || '[]');
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const result = [];
+  
+  // For each day in the month
+  for (let day = 1; day <= daysInMonth; day++) {
+    const date = new Date(year, month, day);
+    const dayOfWeek = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'][date.getDay()];
+    
+    // Check if any medicine is scheduled for this day
+    const hasMeds = medicines.some(med => med.days.includes(dayOfWeek));
+    
+    if (hasMeds) {
+      result.push(day);
+    }
+  }
+  
+  return result;
+}
+
+// Select a day in the calendar
+function selectCalendarDay(year, month, day) {
+  // Update selected date display
+  const selectedDateEl = document.getElementById('selected-date');
+  if (selectedDateEl) {
+    const date = new Date(year, month, day);
+    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    selectedDateEl.textContent = date.toLocaleDateString('en-US', options);
+  }
+  
+  // Highlight selected day
+  const calendarDays = document.querySelectorAll('.calendar-day');
+  calendarDays.forEach(dayEl => {
+    if (dayEl.classList.contains('selected')) {
+      dayEl.classList.remove('selected');
+    }
+    
+    if (dayEl.classList.contains('current-month') && parseInt(dayEl.textContent) === day) {
+      dayEl.classList.add('selected');
+    }
+  });
+  
+  // Display medications for the selected day
+  displayDaySchedule(year, month, day);
+}
+
+// Display medications for a specific day
+function displayDaySchedule(year, month, day) {
+  const scheduleListEl = document.getElementById('schedule-list');
+  if (!scheduleListEl) return;
+  
+  // Clear list
+  scheduleListEl.innerHTML = '';
+  
+  // Get medicines from local storage
+  const medicines = JSON.parse(localStorage.getItem('medicines') || '[]');
+  
+  // Get day of week
+  const date = new Date(year, month, day);
+  const dayOfWeek = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'][date.getDay()];
+  
+  // Filter medicines for this day
+  const dayMedicines = medicines.filter(med => med.days.includes(dayOfWeek));
+  
+  if (dayMedicines.length === 0) {
+    scheduleListEl.innerHTML = `
+      <div class="empty-state">
+        <p>No medications scheduled for this day.</p>
+      </div>
+    `;
+    return;
+  }
+  
+  // Group medicines by time slot
+  const medicinesByTime = {};
+  
+  dayMedicines.forEach(med => {
+    med.timeSlots.forEach(time => {
+      if (!medicinesByTime[time]) {
+        medicinesByTime[time] = [];
+      }
+      medicinesByTime[time].push(med);
+    });
+  });
+  
+  // Sort times
+  const sortedTimes = Object.keys(medicinesByTime).sort();
+  
+  // Render each time slot
+  sortedTimes.forEach(time => {
+    const timeSlotEl = document.createElement('div');
+    timeSlotEl.className = 'schedule-time-slot';
+    
+    const timeEl = document.createElement('div');
+    timeEl.className = 'schedule-time';
+    timeEl.textContent = formatTime(time);
+    
+    const medsEl = document.createElement('div');
+    medsEl.className = 'schedule-meds';
+    
+    // Add each medicine for this time
+    medicinesByTime[time].forEach(med => {
+      const medEl = document.createElement('div');
+      medEl.className = 'schedule-med-item';
+      medEl.innerHTML = `
+        <span class="med-name">${med.name}</span>
+        <span class="med-dose">${med.dosage}</span>
+      `;
+      medsEl.appendChild(medEl);
+    });
+    
+    timeSlotEl.appendChild(timeEl);
+    timeSlotEl.appendChild(medsEl);
+    scheduleListEl.appendChild(timeSlotEl);
+  });
+}
+
+// Update profile statistics
+function updateProfileStats() {
+  const medicines = JSON.parse(localStorage.getItem('medicines') || '[]');
+  
+  // Update active medications count
+  const activeMedsEl = document.querySelector('.stat-value');
+  if (activeMedsEl) {
+    activeMedsEl.textContent = medicines.length;
+  }
+  
+  // Calculate adherence rate (this would normally be more complex)
+  const taken = JSON.parse(localStorage.getItem('taken') || '{}');
+  const today = new Date().toDateString();
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayStr = yesterday.toDateString();
+  
+  // Simple adherence calculation based on last two days
+  let scheduled = 0;
+  let completed = 0;
+  
+  // Count today and yesterday's scheduled meds
+  const dayOfWeek = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'][new Date().getDay()];
+  const yesterdayDayOfWeek = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'][yesterday.getDay()];
+  
+  medicines.forEach(med => {
+    if (med.days.includes(dayOfWeek)) {
+      scheduled += med.timeSlots.length;
+      
+      // Count completed
+      if (taken[today] && taken[today][med.id]) {
+        completed += taken[today][med.id].length;
+      }
+    }
+    
+    if (med.days.includes(yesterdayDayOfWeek)) {
+      scheduled += med.timeSlots.length;
+      
+      // Count completed
+      if (taken[yesterdayStr] && taken[yesterdayStr][med.id]) {
+        completed += taken[yesterdayStr][med.id].length;
+      }
+    }
+  });
+  
+  // Calculate rate
+  let adherenceRate = scheduled > 0 ? Math.round((completed / scheduled) * 100) : 100;
+  
+  // Update UI
+  const adherenceRateEl = document.querySelectorAll('.stat-value')[1];
+  if (adherenceRateEl) {
+    adherenceRateEl.textContent = `${adherenceRate}%`;
   }
 }

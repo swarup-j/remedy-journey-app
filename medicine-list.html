@@ -22,6 +22,13 @@
     </div>
 
     <main>
+      <div class="medicines-filter">
+        <button class="filter-btn active" data-filter="all">All</button>
+        <button class="filter-btn" data-filter="daily">Daily</button>
+        <button class="filter-btn" data-filter="weekly">Weekly</button>
+        <button class="filter-btn" data-filter="other">Other</button>
+      </div>
+
       <div class="medicine-full-list" id="medicine-full-list">
         <!-- Medicines will be populated here -->
       </div>
@@ -34,8 +41,8 @@
     <nav class="bottom-nav">
       <a href="index.html"><i class="fas fa-home"></i><span>Home</span></a>
       <a href="medicine-list.html" class="active"><i class="fas fa-list"></i><span>Medicines</span></a>
-      <a href="#"><i class="fas fa-bell"></i><span>Reminders</span></a>
-      <a href="#"><i class="fas fa-user"></i><span>Profile</span></a>
+      <a href="calendar.html"><i class="fas fa-calendar-alt"></i><span>Calendar</span></a>
+      <a href="profile.html"><i class="fas fa-user"></i><span>Profile</span></a>
     </nav>
   </div>
 

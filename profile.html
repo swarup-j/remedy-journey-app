@@ -1,0 +1,101 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile - MediTrack</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <div class="app-container">
+    <header>
+      <h1>My Profile</h1>
+    </header>
+
+    <main>
+      <div class="profile-header">
+        <div class="profile-avatar">
+          <i class="fas fa-user"></i>
+        </div>
+        <h2>John Doe</h2>
+        <p>john.doe@example.com</p>
+      </div>
+
+      <div class="profile-stats">
+        <div class="stat-card">
+          <span class="stat-value">12</span>
+          <span class="stat-label">Active Medications</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-value">85%</span>
+          <span class="stat-label">Adherence Rate</span>
+        </div>
+      </div>
+
+      <div class="profile-sections">
+        <div class="profile-section">
+          <div class="section-header">
+            <i class="fas fa-bell"></i>
+            <h3>Notification Settings</h3>
+            <i class="fas fa-chevron-right"></i>
+          </div>
+        </div>
+        
+        <div class="profile-section">
+          <div class="section-header">
+            <i class="fas fa-lock"></i>
+            <h3>Privacy & Security</h3>
+            <i class="fas fa-chevron-right"></i>
+          </div>
+        </div>
+        
+        <div class="profile-section">
+          <div class="section-header">
+            <i class="fas fa-cog"></i>
+            <h3>General Settings</h3>
+            <i class="fas fa-chevron-right"></i>
+          </div>
+        </div>
+        
+        <div class="profile-section">
+          <div class="section-header">
+            <i class="fas fa-question-circle"></i>
+            <h3>Help & Support</h3>
+            <i class="fas fa-chevron-right"></i>
+          </div>
+        </div>
+        
+        <div class="profile-section">
+          <div class="section-header">
+            <i class="fas fa-info-circle"></i>
+            <h3>About MediTrack</h3>
+            <i class="fas fa-chevron-right"></i>
+          </div>
+        </div>
+      </div>
+
+      <button class="logout-btn">
+        <i class="fas fa-sign-out-alt"></i>
+        Log Out
+      </button>
+    </main>
+
+    <nav class="bottom-nav">
+      <a href="index.html"><i class="fas fa-home"></i><span>Home</span></a>
+      <a href="medicine-list.html"><i class="fas fa-list"></i><span>Medicines</span></a>
+      <a href="calendar.html"><i class="fas fa-calendar-alt"></i><span>Calendar</span></a>
+      <a href="profile.html" class="active"><i class="fas fa-user"></i><span>Profile</span></a>
+    </nav>
+  </div>
+
+  <div id="toast-notification" class="toast-notification">
+    <i class="fas fa-check-circle"></i>
+    <span id="toast-message"></span>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

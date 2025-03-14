@@ -1,13 +1,14 @@
 
 /* Global Styles */
 :root {
-  --primary-color: #8B5CF6;
-  --primary-light: #D6BCFA;
+  --primary-color: #4CAF50;
+  --primary-light: #8BC34A;
+  --primary-dark: #388E3C;
   --accent-color: #F2FCE2;
   --dark-gray: #333333;
   --medium-gray: #666666;
   --light-gray: #DDDDDD;
-  --very-light-gray: #F5F5F5;
+  --very-light-gray: #F9F9F9;
   --white: #FFFFFF;
   --success: #4CAF50;
   --danger: #F44336;
@@ -85,6 +86,51 @@ h2 {
   color: var(--dark-gray);
 }
 
+/* Greeting Section */
+.greeting-section {
+  margin-bottom: 25px;
+}
+
+.greeting-card {
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+  border-radius: var(--border-radius);
+  padding: 20px;
+  color: white;
+  box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.greeting-text h2 {
+  color: white;
+  margin-bottom: 5px;
+  font-size: 1.4rem;
+}
+
+.greeting-text p {
+  opacity: 0.9;
+  font-size: 0.9rem;
+}
+
+.greeting-icon {
+  font-size: 2.2rem;
+  opacity: 0.8;
+}
+
+/* Section Header Row */
+.section-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.view-all-link {
+  color: var(--primary-color);
+  font-size: 0.85rem;
+}
+
 /* Timeline Styles */
 .timeline {
   display: flex;
@@ -118,10 +164,15 @@ h2 {
   align-items: center;
   position: relative;
   margin-bottom: 10px;
+  transition: transform 0.2s ease;
+}
+
+.medicine-card:active {
+  transform: scale(0.98);
 }
 
 .pill-icon {
-  background-color: var(--primary-light);
+  background-color: var(--accent-color);
   color: var(--primary-color);
   width: 40px;
   height: 40px;
@@ -158,7 +209,12 @@ h2 {
 }
 
 .take-btn:hover {
-  background-color: #7c4dff;
+  background-color: var(--primary-dark);
+}
+
+.take-btn.taken {
+  background-color: var(--light-gray);
+  color: var(--medium-gray);
 }
 
 /* Bottom Navigation */
@@ -178,9 +234,11 @@ h2 {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 10px 0;
+  padding: 12px 0;
   font-size: 0.75rem;
   color: var(--medium-gray);
+  flex: 1;
+  transition: color 0.2s;
 }
 
 .bottom-nav a i {
@@ -209,13 +267,18 @@ h2 {
   background-color: var(--primary-color);
   border-radius: 50%;
   color: white;
-  box-shadow: 0 3px 10px rgba(139, 92, 246, 0.3);
+  box-shadow: 0 3px 10px rgba(76, 175, 80, 0.4);
   font-size: 1.5rem;
-  transition: transform 0.3s;
+  transition: transform 0.3s, background-color 0.3s;
 }
 
 .add-medicine-btn a:hover {
   transform: scale(1.05);
+  background-color: var(--primary-dark);
+}
+
+.add-medicine-btn a:active {
+  transform: scale(0.95);
 }
 
 /* Modal Styles */
@@ -262,6 +325,7 @@ label {
   display: block;
   margin-bottom: 5px;
   font-weight: 500;
+  color: var(--dark-gray);
 }
 
 input, select, textarea {
@@ -271,6 +335,12 @@ input, select, textarea {
   border-radius: var(--border-radius);
   font-family: inherit;
   font-size: 1rem;
+  transition: border-color 0.3s;
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--primary-color);
 }
 
 textarea {
@@ -291,7 +361,7 @@ textarea {
 }
 
 .primary-btn:hover {
-  background-color: #7c4dff;
+  background-color: var(--primary-dark);
 }
 
 .secondary-btn {
@@ -309,7 +379,7 @@ textarea {
 }
 
 .secondary-btn:hover {
-  background-color: rgba(139, 92, 246, 0.1);
+  background-color: rgba(76, 175, 80, 0.1);
 }
 
 .delete-btn {
@@ -340,11 +410,22 @@ textarea {
   flex-direction: column;
   align-items: center;
   flex: 1;
+  background-color: var(--very-light-gray);
+  border-radius: 8px;
+  padding: 5px 0;
+  transition: background-color 0.3s;
 }
 
 .day input[type="checkbox"] {
   width: auto;
   margin-bottom: 5px;
+}
+
+.day input[type="checkbox"]:checked + label,
+.day:has(input[type="checkbox"]:checked) {
+  background-color: var(--accent-color);
+  color: var(--primary-color);
+  font-weight: 500;
 }
 
 /* Medicine List Styles */
@@ -361,6 +442,11 @@ textarea {
   box-shadow: var(--shadow);
   display: flex;
   align-items: center;
+  transition: transform 0.2s;
+}
+
+.medicine-item:active {
+  transform: scale(0.98);
 }
 
 .medicine-item-info {
@@ -370,7 +456,8 @@ textarea {
 .medicine-details {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 12px;
+  margin-top: 15px;
 }
 
 .medicine-details div {
@@ -400,13 +487,25 @@ textarea {
   transform: translateX(-50%);
   background-color: var(--success);
   color: white;
-  padding: 10px 20px;
+  padding: 12px 25px;
   border-radius: 30px;
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
   display: none;
   align-items: center;
   gap: 10px;
   z-index: 1000;
+  animation: fadeInUp 0.3s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 10px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
 }
 
 .toast-notification i {
@@ -460,9 +559,10 @@ textarea {
 
 #search-input {
   flex: 1;
-  padding: 10px;
+  padding: 10px 15px;
   border: 1px solid var(--light-gray);
   border-radius: 20px;
+  background-color: var(--very-light-gray);
 }
 
 .icon-btn {
@@ -476,6 +576,251 @@ textarea {
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.3s;
+}
+
+.icon-btn:hover {
+  background-color: rgba(76, 175, 80, 0.1);
+}
+
+/* Empty State */
+.empty-state {
+  padding: 30px 0;
+  text-align: center;
+  color: var(--medium-gray);
+}
+
+.empty-state p {
+  margin: 10px 0;
+}
+
+/* Filter Buttons */
+.medicines-filter {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  overflow-x: auto;
+  padding-bottom: 5px;
+}
+
+.filter-btn {
+  background-color: var(--very-light-gray);
+  border: none;
+  border-radius: 20px;
+  padding: 6px 15px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.filter-btn.active {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+/* Calendar Styles */
+.calendar-container {
+  background-color: var(--white);
+  border-radius: var(--border-radius);
+  padding: 15px;
+  box-shadow: var(--shadow);
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.calendar-nav-btn {
+  background: none;
+  border: none;
+  color: var(--primary-color);
+  cursor: pointer;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+}
+
+.weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+  font-weight: 500;
+  font-size: 0.8rem;
+  margin-bottom: 10px;
+  color: var(--medium-gray);
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+}
+
+.calendar-day {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 0.9rem;
+  cursor: pointer;
+  position: relative;
+}
+
+.calendar-day.today {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.calendar-day.has-meds::after {
+  content: '';
+  position: absolute;
+  bottom: 3px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  background-color: var(--primary-color);
+  border-radius: 50%;
+}
+
+.calendar-day.today.has-meds::after {
+  background-color: white;
+}
+
+.calendar-day.other-month {
+  color: var(--light-gray);
+}
+
+.day-schedule {
+  margin-top: 25px;
+}
+
+.schedule-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+/* Profile Styles */
+.profile-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.profile-avatar {
+  width: 100px;
+  height: 100px;
+  background-color: var(--accent-color);
+  color: var(--primary-color);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  margin: 0 auto 15px;
+}
+
+.profile-stats {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.stat-card {
+  flex: 1;
+  background-color: var(--white);
+  padding: 15px;
+  border-radius: var(--border-radius);
+  text-align: center;
+  box-shadow: var(--shadow);
+}
+
+.stat-value {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: var(--primary-color);
+  display: block;
+  margin-bottom: 5px;
+}
+
+.stat-label {
+  font-size: 0.8rem;
+  color: var(--medium-gray);
+}
+
+.profile-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 30px;
+}
+
+.profile-section {
+  background-color: var(--white);
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+
+.section-header {
+  padding: 15px;
+  display: flex;
+  align-items: center;
+}
+
+.section-header i:first-child {
+  margin-right: 15px;
+  color: var(--primary-color);
+  font-size: 1.2rem;
+}
+
+.section-header h3 {
+  flex: 1;
+  font-size: 1rem;
+}
+
+.section-header i:last-child {
+  color: var(--medium-gray);
+}
+
+.logout-btn {
+  background-color: var(--white);
+  color: var(--danger);
+  border: 1px solid var(--danger);
+  border-radius: var(--border-radius);
+  width: 100%;
+  padding: 12px;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.logout-btn:hover {
+  background-color: rgba(244, 67, 54, 0.1);
+}
+
+/* Confirmation Modal */
+.confirmation-modal {
+  text-align: center;
+}
+
+.confirmation-modal p {
+  margin: 20px 0;
+  color: var(--medium-gray);
 }
 
 /* Responsive adjustments */
@@ -502,6 +847,6 @@ textarea {
   to { opacity: 1; transform: translateY(0); }
 }
 
-.medicine-card, .medicine-item {
+.medicine-card, .medicine-item, .profile-section {
   animation: fadeIn 0.3s ease-out;
 }
