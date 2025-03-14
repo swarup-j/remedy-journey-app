@@ -1,0 +1,99 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Add Medicine - MediTrack</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <div class="app-container">
+    <header class="form-header">
+      <a href="index.html" class="back-btn"><i class="fas fa-arrow-left"></i></a>
+      <h1>Add Medicine</h1>
+    </header>
+
+    <main>
+      <form id="medicine-form" class="med-form">
+        <div class="form-group">
+          <label for="medicine-name">Medicine Name</label>
+          <input type="text" id="medicine-name" placeholder="Enter medicine name" required>
+        </div>
+
+        <div class="form-group">
+          <label for="dosage">Dosage</label>
+          <input type="text" id="dosage" placeholder="e.g., 1 tablet, 10ml" required>
+        </div>
+
+        <div class="form-group">
+          <label for="frequency">Frequency</label>
+          <select id="frequency" required>
+            <option value="">Select how often</option>
+            <option value="once">Once a day</option>
+            <option value="twice">Twice a day</option>
+            <option value="three">Three times a day</option>
+            <option value="custom">Custom</option>
+          </select>
+        </div>
+
+        <div class="form-group" id="time-slots">
+          <label>Time Slots</label>
+          <div class="time-slot">
+            <input type="time" class="time-input" required>
+            <button type="button" class="remove-time hidden"><i class="fas fa-times"></i></button>
+          </div>
+        </div>
+        <button type="button" id="add-time-slot" class="secondary-btn"><i class="fas fa-plus"></i> Add another time</button>
+
+        <div class="form-group">
+          <label>Days</label>
+          <div class="day-selector">
+            <label class="day"><input type="checkbox" value="mon" checked>M</label>
+            <label class="day"><input type="checkbox" value="tue" checked>T</label>
+            <label class="day"><input type="checkbox" value="wed" checked>W</label>
+            <label class="day"><input type="checkbox" value="thu" checked>T</label>
+            <label class="day"><input type="checkbox" value="fri" checked>F</label>
+            <label class="day"><input type="checkbox" value="sat" checked>S</label>
+            <label class="day"><input type="checkbox" value="sun" checked>S</label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="duration">Duration</label>
+          <select id="duration">
+            <option value="ongoing">Ongoing</option>
+            <option value="1-week">1 week</option>
+            <option value="2-weeks">2 weeks</option>
+            <option value="1-month">1 month</option>
+            <option value="custom">Custom duration</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="notes">Notes (optional)</label>
+          <textarea id="notes" placeholder="Add any special instructions"></textarea>
+        </div>
+
+        <button type="submit" class="primary-btn">Save Medicine</button>
+      </form>
+    </main>
+
+    <nav class="bottom-nav">
+      <a href="index.html"><i class="fas fa-home"></i><span>Home</span></a>
+      <a href="medicine-list.html"><i class="fas fa-list"></i><span>Medicines</span></a>
+      <a href="#"><i class="fas fa-bell"></i><span>Reminders</span></a>
+      <a href="#"><i class="fas fa-user"></i><span>Profile</span></a>
+    </nav>
+  </div>
+
+  <div id="toast-notification" class="toast-notification">
+    <i class="fas fa-check-circle"></i>
+    <span id="toast-message"></span>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

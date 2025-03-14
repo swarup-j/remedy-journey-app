@@ -1,18 +1,118 @@
+
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>remedy-journey-app</title>
-    <meta name="description" content="Lovable Generated Project" />
-    <meta name="author" content="Lovable" />
-    <meta property="og:image" content="/og-image.png" />
-  </head>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MediTrack</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <div class="app-container">
+    <header>
+      <h1>MediTrack</h1>
+      <div class="date-display" id="current-date"></div>
+    </header>
 
-  <body>
-    <div id="root"></div>
-    <!-- IMPORTANT: DO NOT REMOVE THIS SCRIPT TAG OR THIS VERY COMMENT! -->
-    <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+    <main>
+      <section class="today-section">
+        <h2>Today's Medications</h2>
+        <div class="medication-list" id="today-list">
+          <!-- Medications will be added here dynamically -->
+        </div>
+      </section>
+
+      <section class="upcoming-section">
+        <h2>Upcoming</h2>
+        <div class="timeline">
+          <div class="timeline-item">
+            <div class="time">8:00 AM</div>
+            <div class="medicine-cards">
+              <div class="medicine-card">
+                <div class="pill-icon"><i class="fas fa-pills"></i></div>
+                <div class="medicine-info">
+                  <h3>Ibuprofen</h3>
+                  <p>1 tablet</p>
+                </div>
+                <button class="take-btn">Take</button>
+              </div>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="time">12:00 PM</div>
+            <div class="medicine-cards">
+              <div class="medicine-card">
+                <div class="pill-icon"><i class="fas fa-pills"></i></div>
+                <div class="medicine-info">
+                  <h3>Vitamin D</h3>
+                  <p>1 capsule</p>
+                </div>
+                <button class="take-btn">Take</button>
+              </div>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="time">8:00 PM</div>
+            <div class="medicine-cards">
+              <div class="medicine-card">
+                <div class="pill-icon"><i class="fas fa-pills"></i></div>
+                <div class="medicine-info">
+                  <h3>Antibiotic</h3>
+                  <p>1 tablet with food</p>
+                </div>
+                <button class="take-btn">Take</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <div class="add-medicine-btn">
+      <a href="medicine-form.html"><i class="fas fa-plus"></i></a>
+    </div>
+
+    <nav class="bottom-nav">
+      <a href="index.html" class="active"><i class="fas fa-home"></i><span>Home</span></a>
+      <a href="medicine-list.html"><i class="fas fa-list"></i><span>Medicines</span></a>
+      <a href="#" id="notifications-btn"><i class="fas fa-bell"></i><span>Reminders</span></a>
+      <a href="#" id="profile-btn"><i class="fas fa-user"></i><span>Profile</span></a>
+    </nav>
+  </div>
+
+  <div id="reminder-modal" class="modal">
+    <div class="modal-content">
+      <span class="close-btn">&times;</span>
+      <h2>Set Reminder</h2>
+      <form id="reminder-form">
+        <div class="form-group">
+          <label for="reminder-time">Time</label>
+          <input type="time" id="reminder-time" required>
+        </div>
+        <div class="form-group">
+          <label>Repeat</label>
+          <div class="day-selector">
+            <label class="day"><input type="checkbox" value="mon">M</label>
+            <label class="day"><input type="checkbox" value="tue">T</label>
+            <label class="day"><input type="checkbox" value="wed">W</label>
+            <label class="day"><input type="checkbox" value="thu">T</label>
+            <label class="day"><input type="checkbox" value="fri">F</label>
+            <label class="day"><input type="checkbox" value="sat">S</label>
+            <label class="day"><input type="checkbox" value="sun">S</label>
+          </div>
+        </div>
+        <button type="submit" class="primary-btn">Save Reminder</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="toast-notification" class="toast-notification">
+    <i class="fas fa-check-circle"></i>
+    <span id="toast-message"></span>
+  </div>
+
+  <script src="script.js"></script>
+</body>
 </html>
