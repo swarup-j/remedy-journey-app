@@ -17,6 +17,24 @@ document.addEventListener('DOMContentLoaded', () => {
   const loginForm = document.getElementById('login-form');
   if (loginForm) {
     loginForm.addEventListener('submit', handleLogin);
+    
+    // Add demo mode button to login page
+    const formActions = loginForm.querySelector('.form-actions');
+    if (formActions) {
+      const demoButton = document.createElement('button');
+      demoButton.type = 'button';
+      demoButton.className = 'secondary-button full-width';
+      demoButton.textContent = 'Try Demo Mode';
+      demoButton.addEventListener('click', () => {
+        document.getElementById('email').value = api.DUMMY_DATA.user.email;
+        document.getElementById('password').value = api.DUMMY_DATA.user.password;
+        
+        // Show toast informing about demo credentials
+        showToast('Demo credentials loaded. Click Login to continue.');
+      });
+      
+      formActions.appendChild(demoButton);
+    }
   }
   
   // Register form
@@ -36,6 +54,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       });
     }
+    
+    // Add demo mode option to register page as well
+    const formActions = registerForm.querySelector('.form-actions');
+    if (formActions) {
+      const demoLink = document.createElement('a');
+      demoLink.href = 'login.html';
+      demoLink.className = 'demo-link';
+      demoLink.textContent = 'Or try our demo mode instead';
+      formActions.appendChild(demoLink);
+    }
   }
   
   // Logout functionality (for use in profile.html)
@@ -43,7 +71,24 @@ document.addEventListener('DOMContentLoaded', () => {
   if (logoutButton) {
     logoutButton.addEventListener('click', handleLogout);
   }
+  
+  // Add demo mode indicator if in demo mode
+  if (api.isDemoMode()) {
+    addDemoModeIndicator();
+  }
 });
+
+function addDemoModeIndicator() {
+  // Check if indicator already exists
+  if (document.getElementById('demo-mode-indicator')) return;
+  
+  const indicator = document.createElement('div');
+  indicator.id = 'demo-mode-indicator';
+  indicator.className = 'demo-mode-indicator';
+  indicator.innerHTML = '<i class="fas fa-flask"></i> Demo Mode';
+  
+  document.body.appendChild(indicator);
+}
 
 async function handleLogin(event) {
   event.preventDefault();
@@ -54,25 +99,19 @@ async function handleLogin(event) {
   
   try {
     const online = await checkOnlineStatus();
-    if (!online) {
+    
+    // Allow demo mode login even when offline
+    const isDemoLogin = email === api.DUMMY_DATA.user.email && password === api.DUMMY_DATA.user.password;
+    
+    if (!online && !isDemoLogin) {
       errorDiv.textContent = 'Cannot login while offline. Please check your internet connection.';
       return;
     }
     
     errorDiv.textContent = '';
-    const response = await fetch(`${api.API_BASE_URL}${api.ENDPOINTS.LOGIN}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email, password }),
-    });
     
-    const data = await response.json();
-    
-    if (!response.ok) {
-      throw new Error(data.message || 'Invalid email or password');
-    }
+    // Use the enhanced login function from the API
+    const data = await api.login(email, password);
     
     // Store auth token and user info
     localStorage.setItem('authToken', data.token);
@@ -81,7 +120,7 @@ async function handleLogin(event) {
       email: data.email
     }));
     
-    showToast('Login successful! Redirecting...');
+    showToast(isDemoLogin ? 'Demo login successful! You can explore all features.' : 'Login successful! Redirecting...');
     
     // Redirect to home page after short delay
     setTimeout(() => {
