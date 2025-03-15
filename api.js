@@ -136,7 +136,8 @@ const fetchMedicines = async () => {
   // If in demo mode, return dummy data
   if (isDemoMode()) {
     console.log('MediTrack: Returning dummy medicines');
-    return DUMMY_DATA.medicines;
+    // Get medicines from local storage if available, otherwise use default dummy data
+    return JSON.parse(localStorage.getItem('dummyMedicines') || JSON.stringify(DUMMY_DATA.medicines));
   }
   
   try {
@@ -166,7 +167,8 @@ const fetchMedicines = async () => {
 const fetchMedicineById = async (id) => {
   // If in demo mode, return dummy data
   if (isDemoMode()) {
-    const medicine = DUMMY_DATA.medicines.find(med => med.id === id);
+    const medicines = JSON.parse(localStorage.getItem('dummyMedicines') || JSON.stringify(DUMMY_DATA.medicines));
+    const medicine = medicines.find(med => med.id === id);
     if (medicine) {
       console.log(`MediTrack: Returning dummy medicine with ID ${id}`);
       return medicine;
@@ -386,7 +388,7 @@ const getUserProfile = async () => {
 // Login function - now with support for demo mode
 const login = async (email, password) => {
   // Check if using the demo account
-  if (email === DUMMY_DATA.user.email && password === DUMMY_DATA.user.password) {
+  if (email === 'test@example.com' && password === 'password123') {
     const user = enableDemoMode();
     return {
       token: 'dummy-token-for-testing',

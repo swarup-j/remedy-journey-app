@@ -1,3 +1,4 @@
+
 /* General Styles */
 body {
   font-family: 'Poppins', sans-serif;
@@ -92,6 +93,8 @@ label {
 input[type="text"],
 input[type="email"],
 input[type="password"],
+input[type="date"],
+input[type="time"],
 select,
 textarea {
   width: 100%;
@@ -342,6 +345,7 @@ textarea {
   display: flex;
   gap: 0.5rem;
   margin-top: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .day {
@@ -360,6 +364,120 @@ textarea {
 .day input[type="checkbox"]:checked + span {
   background-color: #3498db;
   color: white;
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: 3px;
+}
+
+/* Color Picker Styles */
+.color-picker {
+  display: flex;
+  gap: 15px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.color-option {
+  cursor: pointer;
+  position: relative;
+}
+
+.color-option input[type="radio"] {
+  display: none;
+}
+
+.color-circle {
+  display: inline-block;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid #ddd;
+  transition: all 0.2s;
+}
+
+.color-option.selected .color-circle {
+  border-color: #333;
+  transform: scale(1.1);
+  box-shadow: 0 0 10px rgba(0,0,0,0.2);
+}
+
+.color-circle.pink {
+  background-color: #ff69b4;
+}
+
+.color-circle.white {
+  background-color: #ffffff;
+}
+
+.color-circle.yellow {
+  background-color: #ffeb3b;
+}
+
+.color-circle.orange {
+  background-color: #ff9800;
+}
+
+.color-circle.pastel-green {
+  background-color: #a8e6cf;
+}
+
+.color-circle.other {
+  background: linear-gradient(135deg, #ff9800, #e91e63, #2196f3, #4caf50);
+}
+
+/* Time Input Styles */
+#time-slots {
+  margin-top: 10px;
+}
+
+.time-slot {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.time-input {
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  margin-right: 10px;
+  width: calc(100% - 50px);
+}
+
+.remove-time {
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.remove-time:hover {
+  background-color: #c0392b;
+}
+
+.remove-time.hidden {
+  display: none;
+}
+
+/* Secondary Button */
+.secondary-btn {
+  background-color: #fff;
+  color: #3498db;
+  border: 1px solid #3498db;
+  padding: 10px 15px;
+  border-radius: 5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s, color 0.3s;
+  margin-top: 10px;
+  display: inline-block;
+}
+
+.secondary-btn:hover {
+  background-color: #e8f4ff;
 }
 
 /* Medicine Card Styles */
@@ -570,58 +688,6 @@ textarea {
   font-size: 2rem;
 }
 
-/* Time Input Styles */
-#time-slots {
-  margin-top: 10px;
-}
-
-.time-slot {
-  display: flex;
-  align-items: center;
-  margin-bottom: 10px;
-}
-
-.time-input {
-  padding: 8px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  margin-right: 10px;
-}
-
-.remove-time {
-  background-color: #e74c3c;
-  color: white;
-  border: none;
-  padding: 8px 12px;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.remove-time:hover {
-  background-color: #c0392b;
-}
-
-.remove-time.hidden {
-  display: none;
-}
-
-/* Secondary Button */
-.secondary-btn {
-  background-color: #fff;
-  color: #3498db;
-  border: 1px solid #3498db;
-  padding: 10px 15px;
-  border-radius: 5px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.3s, color 0.3s;
-}
-
-.secondary-btn:hover {
-  background-color: #e8f4ff;
-}
-
 /* Mobile-Friendly Adjustments */
 @media (max-width: 768px) {
   .app-container {
@@ -642,6 +708,14 @@ textarea {
 
   .bottom-nav a span {
     font-size: 0.8rem;
+  }
+  
+  .day-selector {
+    justify-content: center;
+  }
+  
+  .color-picker {
+    justify-content: center;
   }
 }
 
@@ -699,4 +773,19 @@ textarea {
 .secondary-button.full-width {
   width: 100%;
   margin-top: 10px;
+}
+
+/* Form validation visual feedback */
+input:invalid, select:invalid, textarea:invalid {
+  border-color: var(--alert-color);
+}
+
+/* Alert box styles */
+.alert-box {
+  padding: 15px;
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+  border-radius: 4px;
+  margin-bottom: 15px;
 }

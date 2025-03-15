@@ -8,8 +8,8 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Check if user is already logged in
   const token = localStorage.getItem('authToken');
-  if (token && !window.location.pathname.includes('index.html')) {
-    // Only redirect if not already on index page
+  if (token && window.location.pathname.includes('login.html')) {
+    // Only redirect if on login page and already authenticated
     window.location.href = 'index.html';
   }
   
@@ -26,8 +26,8 @@ document.addEventListener('DOMContentLoaded', () => {
       demoButton.className = 'secondary-button full-width';
       demoButton.textContent = 'Try Demo Mode';
       demoButton.addEventListener('click', () => {
-        document.getElementById('email').value = api.DUMMY_DATA.user.email;
-        document.getElementById('password').value = api.DUMMY_DATA.user.password;
+        document.getElementById('email').value = 'test@example.com';
+        document.getElementById('password').value = 'password123';
         
         // Show toast informing about demo credentials
         showToast('Demo credentials loaded. Click Login to continue.');
@@ -101,7 +101,7 @@ async function handleLogin(event) {
     const online = await checkOnlineStatus();
     
     // Allow demo mode login even when offline
-    const isDemoLogin = email === api.DUMMY_DATA.user.email && password === api.DUMMY_DATA.user.password;
+    const isDemoLogin = email === 'test@example.com' && password === 'password123';
     
     if (!online && !isDemoLogin) {
       errorDiv.textContent = 'Cannot login while offline. Please check your internet connection.';

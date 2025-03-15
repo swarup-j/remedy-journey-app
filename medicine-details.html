@@ -4,33 +4,30 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Add Medicine Details - MediTrack</title>
+  <title>Medicine Details - MediTrack</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
   <div class="app-container">
-    <header>
-      <div class="form-header">
-        <a href="index.html" class="back-btn"><i class="fas fa-arrow-left"></i></a>
-        <h1>Add Medicine Details</h1>
-      </div>
-    </header>
+    <div class="form-header">
+      <a href="medicine-list.html" class="back-btn"><i class="fas fa-arrow-left"></i></a>
+      <h1>Medicine Details</h1>
+      <div></div>
+    </div>
 
     <main>
-      <form id="medicine-details-form" class="medicine-details-form">
-        <!-- Name Field -->
+      <form id="medicine-form" class="med-form">
         <div class="form-group">
-          <label for="medicine-name">Medicine Name <span class="required">*</span></label>
-          <input type="text" id="medicine-name" required placeholder="Enter medicine name">
+          <label for="name">Medicine Name</label>
+          <input type="text" id="name" name="name" placeholder="Enter medicine name" required>
         </div>
-
-        <!-- Type Field -->
+        
         <div class="form-group">
-          <label for="medicine-type">Medicine Type <span class="required">*</span></label>
-          <select id="medicine-type" required>
-            <option value="">Select type</option>
+          <label for="type">Medicine Type</label>
+          <select id="type" name="type" required>
+            <option value="">Select medicine type</option>
             <option value="pill">Pill</option>
             <option value="tablet">Tablet</option>
             <option value="capsule">Capsule</option>
@@ -40,137 +37,141 @@
             <option value="other">Other</option>
           </select>
         </div>
-
-        <!-- Color Selection -->
+        
         <div class="form-group">
-          <label>Medicine Color <span class="required">*</span></label>
-          <div class="color-selection">
+          <label>Medicine Color</label>
+          <div class="color-picker">
             <div class="color-option" data-color="pink">
-              <div class="color-circle pink"></div>
-              <span>Pink</span>
+              <input type="radio" name="color" id="color-pink" value="pink">
+              <label for="color-pink" class="color-circle pink"></label>
             </div>
             <div class="color-option" data-color="white">
-              <div class="color-circle white"></div>
-              <span>White</span>
+              <input type="radio" name="color" id="color-white" value="white">
+              <label for="color-white" class="color-circle white"></label>
             </div>
             <div class="color-option" data-color="yellow">
-              <div class="color-circle yellow"></div>
-              <span>Yellow</span>
+              <input type="radio" name="color" id="color-yellow" value="yellow">
+              <label for="color-yellow" class="color-circle yellow"></label>
             </div>
             <div class="color-option" data-color="orange">
-              <div class="color-circle orange"></div>
-              <span>Orange</span>
+              <input type="radio" name="color" id="color-orange" value="orange">
+              <label for="color-orange" class="color-circle orange"></label>
             </div>
             <div class="color-option" data-color="pastel-green">
-              <div class="color-circle pastel-green"></div>
-              <span>Pastel Green</span>
+              <input type="radio" name="color" id="color-pastel-green" value="pastel-green">
+              <label for="color-pastel-green" class="color-circle pastel-green"></label>
             </div>
             <div class="color-option" data-color="other">
-              <div class="color-circle other"></div>
-              <span>Other</span>
+              <input type="radio" name="color" id="color-other" value="other">
+              <label for="color-other" class="color-circle other"></label>
             </div>
           </div>
-          <input type="hidden" id="selected-color" required>
         </div>
-
-        <!-- Date Range -->
-        <div class="form-group date-range">
-          <div>
-            <label for="start-date">Start Date <span class="required">*</span></label>
-            <input type="date" id="start-date" required>
-          </div>
-          <div>
-            <label for="end-date">End Date <span class="required">*</span></label>
-            <input type="date" id="end-date" required>
-          </div>
-        </div>
-
-        <!-- Timing -->
+        
         <div class="form-group">
-          <label>Timing <span class="required">*</span></label>
-          <div id="timing-container">
-            <div class="timing-entry">
-              <input type="time" class="time-input" required>
-              <button type="button" class="remove-timing"><i class="fas fa-times"></i></button>
+          <label for="start-date">Start Date</label>
+          <input type="date" id="start-date" name="startDate" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="end-date">End Date (Optional)</label>
+          <input type="date" id="end-date" name="endDate">
+          <small>Leave empty for ongoing treatment</small>
+        </div>
+        
+        <div class="form-group">
+          <label for="frequency">Frequency</label>
+          <select id="frequency" name="frequency" required>
+            <option value="">Select frequency</option>
+            <option value="once">Once daily</option>
+            <option value="twice">Twice daily</option>
+            <option value="thrice">Three times daily</option>
+            <option value="custom">Custom times</option>
+          </select>
+        </div>
+        
+        <div class="form-group" id="time-slots-container">
+          <label>Time Slots</label>
+          <div id="time-slots">
+            <div class="time-slot">
+              <input type="time" class="time-input" name="time-slot" required>
+              <button type="button" class="remove-time hidden"><i class="fas fa-times"></i></button>
             </div>
           </div>
-          <button type="button" id="add-timing" class="add-button">
-            <i class="fas fa-plus"></i> Add Another Time
-          </button>
+          <button type="button" id="add-time" class="secondary-btn"><i class="fas fa-plus"></i> Add Time Slot</button>
         </div>
-
-        <!-- Days of Week -->
+        
         <div class="form-group">
-          <label>Days <span class="required">*</span></label>
+          <label>Days of Week</label>
           <div class="day-selector">
-            <div class="day">
-              <input type="checkbox" id="day-sun" name="days" value="Sun">
-              <label for="day-sun">Sun</label>
-            </div>
-            <div class="day">
-              <input type="checkbox" id="day-mon" name="days" value="Mon">
-              <label for="day-mon">Mon</label>
-            </div>
-            <div class="day">
-              <input type="checkbox" id="day-tue" name="days" value="Tue">
-              <label for="day-tue">Tue</label>
-            </div>
-            <div class="day">
-              <input type="checkbox" id="day-wed" name="days" value="Wed">
-              <label for="day-wed">Wed</label>
-            </div>
-            <div class="day">
-              <input type="checkbox" id="day-thu" name="days" value="Thu">
-              <label for="day-thu">Thu</label>
-            </div>
-            <div class="day">
-              <input type="checkbox" id="day-fri" name="days" value="Fri">
-              <label for="day-fri">Fri</label>
-            </div>
-            <div class="day">
-              <input type="checkbox" id="day-sat" name="days" value="Sat">
-              <label for="day-sat">Sat</label>
-            </div>
+            <label class="day">
+              <input type="checkbox" name="day" value="mon" checked>
+              <span>Mon</span>
+            </label>
+            <label class="day">
+              <input type="checkbox" name="day" value="tue" checked>
+              <span>Tue</span>
+            </label>
+            <label class="day">
+              <input type="checkbox" name="day" value="wed" checked>
+              <span>Wed</span>
+            </label>
+            <label class="day">
+              <input type="checkbox" name="day" value="thu" checked>
+              <span>Thu</span>
+            </label>
+            <label class="day">
+              <input type="checkbox" name="day" value="fri" checked>
+              <span>Fri</span>
+            </label>
+            <label class="day">
+              <input type="checkbox" name="day" value="sat" checked>
+              <span>Sat</span>
+            </label>
+            <label class="day">
+              <input type="checkbox" name="day" value="sun" checked>
+              <span>Sun</span>
+            </label>
           </div>
         </div>
-
-        <!-- Notes -->
+        
         <div class="form-group">
-          <label for="notes">Notes</label>
-          <textarea id="notes" placeholder="Enter additional notes"></textarea>
+          <label for="notes">Notes (Optional)</label>
+          <textarea id="notes" name="notes" placeholder="Add any notes about this medicine"></textarea>
         </div>
-
-        <!-- Submit Button -->
-        <div class="form-group">
-          <button type="submit" class="primary-btn">Save Medicine</button>
+        
+        <div class="form-actions">
+          <button type="submit" class="primary-button full-width">Save Medicine</button>
         </div>
       </form>
     </main>
-
+    
     <div class="bottom-nav">
-      <a href="index.html"><i class="fas fa-home"></i><span>Home</span></a>
-      <a href="medicine-list.html"><i class="fas fa-pills"></i><span>Medicines</span></a>
-      <a href="calendar.html"><i class="fas fa-calendar-alt"></i><span>Calendar</span></a>
-      <a href="profile.html"><i class="fas fa-user"></i><span>Profile</span></a>
+      <a href="index.html">
+        <i class="fas fa-home"></i>
+        <span>Home</span>
+      </a>
+      <a href="medicine-list.html">
+        <i class="fas fa-pills"></i>
+        <span>Medicines</span>
+      </a>
+      <a href="calendar.html">
+        <i class="fas fa-calendar-alt"></i>
+        <span>Calendar</span>
+      </a>
+      <a href="profile.html">
+        <i class="fas fa-user"></i>
+        <span>Profile</span>
+      </a>
     </div>
   </div>
 
-  <!-- Alert Modal -->
-  <div id="alert-modal" class="modal">
-    <div class="modal-content">
-      <span class="close-btn">&times;</span>
-      <h3 id="alert-title">Alert</h3>
-      <p id="alert-message"></p>
-      <button id="alert-ok" class="primary-btn">OK</button>
-    </div>
-  </div>
-
-  <div id="toast-notification" class="toast-notification">
+  <div id="toast-notification" class="toast-notification" style="display: none;">
     <i class="fas fa-check-circle"></i>
     <span id="toast-message"></span>
   </div>
 
-  <div id="offline-banner" class="offline-banner">
+  <div id="offline-banner" class="offline-banner" style="display: none;">
     <i class="fas fa-wifi-slash"></i>
     <span>You are offline. Some features may be limited.</span>
   </div>
