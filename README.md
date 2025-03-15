@@ -28,11 +28,13 @@ The app uses the following API endpoints for communication with the backend:
   "id": "string",
   "name": "string",
   "type": "string",
+  "color": "string",
   "dosage": "string",
+  "startDate": "string",
+  "endDate": "string",
   "frequency": "string",
   "timeSlots": ["string"],
   "days": ["string"],
-  "duration": "string",
   "notes": "string"
 }
 ```
@@ -85,6 +87,7 @@ The application has built-in offline support, storing data locally when the back
 - User profile with statistics
 - Search and filter medications
 - Offline functionality
+- Color-coded medicine tracking
 
 ## Technical Implementation
 

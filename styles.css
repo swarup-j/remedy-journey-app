@@ -1091,3 +1091,138 @@ small {
 #logout-btn i:first-child {
   color: #f44336;
 }
+
+/* Medicine Details Form Styles */
+.medicine-details-form {
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.required {
+  color: var(--danger);
+  margin-left: 2px;
+}
+
+.date-range {
+  display: flex;
+  gap: 15px;
+}
+
+.date-range > div {
+  flex: 1;
+}
+
+/* Color Selection */
+.color-selection {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-top: 10px;
+}
+
+.color-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  transition: transform 0.2s;
+  width: 70px;
+}
+
+.color-option:hover {
+  transform: scale(1.05);
+}
+
+.color-option.active .color-circle {
+  border: 3px solid var(--primary-color);
+  box-shadow: 0 0 0 2px white inset;
+}
+
+.color-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin-bottom: 5px;
+  border: 2px solid #ddd;
+}
+
+.color-option span {
+  font-size: 0.8rem;
+  color: var(--medium-gray);
+  text-align: center;
+}
+
+.color-circle.pink {
+  background-color: #FFDEE2;
+}
+
+.color-circle.white {
+  background-color: #FFFFFF;
+}
+
+.color-circle.yellow {
+  background-color: #FEF7CD;
+}
+
+.color-circle.orange {
+  background-color: #FEC6A1;
+}
+
+.color-circle.pastel-green {
+  background-color: #F2FCE2;
+}
+
+.color-circle.other {
+  background: linear-gradient(45deg, #F1F0FB, #E5DEFF, #D3E4FD, #FFDEE2);
+}
+
+/* Timing Styles */
+.timing-entry {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  gap: 10px;
+}
+
+.time-input {
+  flex: 1;
+  padding: 12px;
+  border: 1px solid var(--light-gray);
+  border-radius: var(--border-radius);
+}
+
+.remove-timing {
+  background: none;
+  border: none;
+  color: var(--danger);
+  cursor: pointer;
+  font-size: 1.2rem;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.add-button {
+  background-color: var(--accent-color);
+  color: var(--primary-color);
+  border: none;
+  border-radius: var(--border-radius);
+  padding: 10px 15px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  margin-top: 5px;
+  transition: background-color 0.2s;
+}
+
+.add-button:hover {
+  background-color: #e6f7d4;
+}

@@ -1,4 +1,3 @@
-
 // MediTrack API Service
 // This file contains all API endpoints and functions for communication with the backend
 
