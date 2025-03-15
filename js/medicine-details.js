@@ -1,240 +1,266 @@
 
-// Medicine Details Form Functionality
+// Import utilities and API
+import { showToast, setupOfflineDetection, requireAuth } from './utils.js';
 import api from '../api.js';
-import { showToast, checkOnlineStatus, setupOfflineDetection, requireAuth } from './utils.js';
 
+// DOM Content Loaded Event
 document.addEventListener('DOMContentLoaded', () => {
-  // Setup offline detection
-  setupOfflineDetection();
-  
-  // Require authentication for this page
+  // Redirect if not authenticated
   if (!requireAuth()) {
     return;
   }
-
-  // Initialize the medicine form
+  
+  // Setup offline detection
+  setupOfflineDetection();
+  
+  // Initialize the form
   initializeMedicineForm();
 });
 
+// Initialize Medicine Form
 function initializeMedicineForm() {
-  // Color selection logic
+  // Get form elements
+  const form = document.getElementById('medicine-details-form');
   const colorOptions = document.querySelectorAll('.color-option');
-  colorOptions.forEach(option => {
-    option.addEventListener('click', function() {
-      // Clear all selected colors
-      colorOptions.forEach(opt => opt.classList.remove('selected'));
-      
-      // Select the clicked color
-      this.classList.add('selected');
-      
-      // Check the radio input
-      const radioInput = this.querySelector('input[type="radio"]');
-      radioInput.checked = true;
-    });
-  });
-
-  // Date validation logic
   const startDateInput = document.getElementById('start-date');
   const endDateInput = document.getElementById('end-date');
+  const addTimingButton = document.getElementById('add-timing');
+  const timingContainer = document.getElementById('timing-container');
   
-  // Set start date to today by default
-  startDateInput.valueAsDate = new Date();
+  // Set today's date as the minimum start date
+  const today = new Date().toISOString().split('T')[0];
+  startDateInput.min = today;
   
+  // Start date change event
+  startDateInput.addEventListener('change', function() {
+    // Update min date of end date to be at least start date
+    endDateInput.min = this.value;
+    
+    // If end date is before start date, clear end date
+    if (endDateInput.value && endDateInput.value < this.value) {
+      endDateInput.value = '';
+      showAlert('Date Range Error', 'End date cannot be before start date. Please select a valid end date.');
+    }
+  });
+  
+  // End date change event
   endDateInput.addEventListener('change', function() {
     if (this.value && startDateInput.value && this.value < startDateInput.value) {
-      alert('End date cannot be before start date!');
       this.value = '';
+      showAlert('Date Range Error', 'End date cannot be before start date. Please select a valid end date.');
     }
   });
   
-  // Time slots logic
-  const addTimeButton = document.getElementById('add-time');
-  const timeSlotsContainer = document.getElementById('time-slots');
-  
-  addTimeButton.addEventListener('click', function() {
-    addTimeSlot();
-  });
-  
-  // Handle removing time slots
-  timeSlotsContainer.addEventListener('click', function(event) {
-    if (event.target.closest('.remove-time')) {
-      const timeSlot = event.target.closest('.time-slot');
+  // Color selection
+  colorOptions.forEach(option => {
+    option.addEventListener('click', function() {
+      // Remove active class from all options
+      colorOptions.forEach(opt => opt.classList.remove('active'));
       
-      // Only remove if there's more than one time slot
-      if (timeSlotsContainer.children.length > 1) {
-        timeSlot.remove();
-      }
-    }
+      // Add active class to selected option
+      this.classList.add('active');
+      
+      // Update hidden input with selected color
+      document.getElementById('selected-color').value = this.dataset.color;
+    });
   });
   
-  // Frequency change handler
-  const frequencySelect = document.getElementById('frequency');
-  frequencySelect.addEventListener('change', function() {
-    const value = this.value;
-    
-    // Clear existing time slots
-    timeSlotsContainer.innerHTML = '';
-    
-    // Add appropriate number of time slots based on frequency
-    if (value === 'once') {
-      addTimeSlot('08:00');
-    } else if (value === 'twice') {
-      addTimeSlot('08:00');
-      addTimeSlot('20:00');
-    } else if (value === 'thrice') {
-      addTimeSlot('08:00');
-      addTimeSlot('14:00');
-      addTimeSlot('20:00');
-    } else if (value === 'custom') {
-      addTimeSlot('');
-    }
-    
-    // Show or hide the "Add Time Slot" button based on frequency
-    addTimeButton.style.display = value === 'custom' ? 'block' : 'none';
+  // Add timing button
+  addTimingButton.addEventListener('click', function() {
+    addTimingField();
   });
   
-  // Form submission handler
-  const form = document.getElementById('medicine-form');
-  form.addEventListener('submit', async function(event) {
-    event.preventDefault();
+  // Initial timing field setup - remove button functionality
+  setupRemoveTimingButtons();
+  
+  // Form submission
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
     
     // Validate form
-    if (!validateForm()) {
-      return;
+    if (validateForm()) {
+      saveMedicine();
     }
-    
-    try {
-      // Get form data
-      const medicineData = {
-        name: document.getElementById('name').value,
-        type: document.getElementById('type').value,
-        color: document.querySelector('input[name="color"]:checked')?.value || '',
-        startDate: document.getElementById('start-date').value,
-        endDate: document.getElementById('end-date').value,
-        frequency: document.getElementById('frequency').value,
-        timeSlots: Array.from(document.querySelectorAll('.time-input')).map(input => input.value),
-        days: Array.from(document.querySelectorAll('input[name="day"]:checked')).map(input => input.value),
-        notes: document.getElementById('notes').value
-      };
-      
-      // Check online status
-      const online = await checkOnlineStatus();
-      
-      // Allow saving in demo mode even when offline
-      if (!online && !api.isDemoMode()) {
-        showToast('Cannot save while offline. Please check your internet connection.');
-        return;
-      }
-      
-      // Call API to add medicine
-      const result = await api.addMedicine(medicineData);
-      
-      if (result.error) {
-        showToast(`Error: ${result.error}`);
+  });
+}
+
+// Add a new timing field
+function addTimingField() {
+  const timingContainer = document.getElementById('timing-container');
+  
+  const timingEntry = document.createElement('div');
+  timingEntry.className = 'timing-entry';
+  
+  timingEntry.innerHTML = `
+    <input type="time" class="time-input" required>
+    <button type="button" class="remove-timing"><i class="fas fa-times"></i></button>
+  `;
+  
+  timingContainer.appendChild(timingEntry);
+  
+  // Setup remove button for the new timing field
+  setupRemoveTimingButtons();
+}
+
+// Setup remove timing buttons
+function setupRemoveTimingButtons() {
+  const removeButtons = document.querySelectorAll('.remove-timing');
+  
+  removeButtons.forEach(button => {
+    button.addEventListener('click', function() {
+      // Don't remove if it's the only timing field
+      const timingFields = document.querySelectorAll('.timing-entry');
+      if (timingFields.length > 1) {
+        this.parentElement.remove();
       } else {
-        showToast('Medicine added successfully!');
-        
-        // Reset form or redirect
-        setTimeout(() => {
-          window.location.href = 'medicine-list.html';
-        }, 1500);
+        showToast('At least one timing is required');
       }
-    } catch (error) {
-      console.error('Error saving medicine:', error);
-      showToast('Error saving medicine. Please try again.');
+    });
+  });
+}
+
+// Validate the form
+function validateForm() {
+  // Check medicine name
+  const medicineName = document.getElementById('medicine-name').value.trim();
+  if (!medicineName) {
+    showAlert('Missing Information', 'Please enter the medicine name.');
+    return false;
+  }
+  
+  // Check medicine type
+  const medicineType = document.getElementById('medicine-type').value;
+  if (!medicineType) {
+    showAlert('Missing Information', 'Please select the medicine type.');
+    return false;
+  }
+  
+  // Check color selection
+  const selectedColor = document.getElementById('selected-color').value;
+  if (!selectedColor) {
+    showAlert('Missing Information', 'Please select a color for the medicine.');
+    return false;
+  }
+  
+  // Check dates
+  const startDate = document.getElementById('start-date').value;
+  const endDate = document.getElementById('end-date').value;
+  
+  if (!startDate) {
+    showAlert('Missing Information', 'Please select a start date.');
+    return false;
+  }
+  
+  if (!endDate) {
+    showAlert('Missing Information', 'Please select an end date.');
+    return false;
+  }
+  
+  if (new Date(endDate) < new Date(startDate)) {
+    showAlert('Date Range Error', 'End date cannot be before start date.');
+    return false;
+  }
+  
+  // Check timing selections
+  const timeInputs = document.querySelectorAll('.time-input');
+  let isTimeValid = true;
+  
+  timeInputs.forEach(input => {
+    if (!input.value) {
+      isTimeValid = false;
     }
   });
   
-  // Set up default values for a new medicine
-  setDefaultValues();
-}
-
-function setDefaultValues() {
-  // Default to once daily frequency
-  document.getElementById('frequency').value = 'once';
-  
-  // Add default time slot
-  const timeSlotsContainer = document.getElementById('time-slots');
-  timeSlotsContainer.innerHTML = '';
-  addTimeSlot('08:00');
-  
-  // Hide add time button initially (since default is once daily)
-  document.getElementById('add-time').style.display = 'none';
-}
-
-function addTimeSlot(defaultTime = '') {
-  const timeSlotsContainer = document.getElementById('time-slots');
-  const timeSlot = document.createElement('div');
-  timeSlot.className = 'time-slot';
-  
-  const timeInput = document.createElement('input');
-  timeInput.type = 'time';
-  timeInput.className = 'time-input';
-  timeInput.name = 'time-slot';
-  timeInput.required = true;
-  if (defaultTime) {
-    timeInput.value = defaultTime;
-  }
-  
-  const removeButton = document.createElement('button');
-  removeButton.type = 'button';
-  removeButton.className = 'remove-time';
-  removeButton.innerHTML = '<i class="fas fa-times"></i>';
-  
-  // Only show remove button if there's more than one time slot
-  if (timeSlotsContainer.children.length > 0) {
-    removeButton.classList.remove('hidden');
-    
-    // Also unhide remove buttons in any existing time slots
-    const existingRemoveButtons = timeSlotsContainer.querySelectorAll('.remove-time');
-    existingRemoveButtons.forEach(button => button.classList.remove('hidden'));
-  }
-  
-  timeSlot.appendChild(timeInput);
-  timeSlot.appendChild(removeButton);
-  timeSlotsContainer.appendChild(timeSlot);
-}
-
-function validateForm() {
-  // Check all required fields
-  const requiredFields = [
-    { id: 'name', message: 'Please enter the medicine name' },
-    { id: 'type', message: 'Please select the medicine type' },
-    { id: 'start-date', message: 'Please select a start date' },
-  ];
-  
-  for (const field of requiredFields) {
-    const element = document.getElementById(field.id);
-    if (!element.value) {
-      showToast(field.message);
-      element.focus();
-      return false;
-    }
-  }
-  
-  // Check if a color is selected
-  const colorSelected = document.querySelector('input[name="color"]:checked');
-  if (!colorSelected) {
-    showToast('Please select a medicine color');
+  if (!isTimeValid) {
+    showAlert('Missing Information', 'Please enter all timing values.');
     return false;
   }
   
-  // Check if at least one day is selected
-  const daysSelected = document.querySelectorAll('input[name="day"]:checked');
-  if (daysSelected.length === 0) {
-    showToast('Please select at least one day of the week');
+  // Check days selection
+  const selectedDays = document.querySelectorAll('input[name="days"]:checked');
+  if (selectedDays.length === 0) {
+    showAlert('Missing Information', 'Please select at least one day of the week.');
     return false;
-  }
-  
-  // Check if time slots are filled
-  const timeInputs = document.querySelectorAll('.time-input');
-  for (const input of timeInputs) {
-    if (!input.value) {
-      showToast('Please fill in all time slots');
-      input.focus();
-      return false;
-    }
   }
   
   return true;
+}
+
+// Save medicine to the database
+async function saveMedicine() {
+  // Get all form values
+  const medicineName = document.getElementById('medicine-name').value.trim();
+  const medicineType = document.getElementById('medicine-type').value;
+  const medicineColor = document.getElementById('selected-color').value;
+  const startDate = document.getElementById('start-date').value;
+  const endDate = document.getElementById('end-date').value;
+  const notes = document.getElementById('notes').value.trim();
+  
+  // Get all timing values
+  const timeInputs = document.querySelectorAll('.time-input');
+  const timeSlots = Array.from(timeInputs).map(input => input.value);
+  
+  // Get selected days
+  const selectedDays = document.querySelectorAll('input[name="days"]:checked');
+  const days = Array.from(selectedDays).map(checkbox => checkbox.value);
+  
+  // Create medicine object
+  const medicine = {
+    name: medicineName,
+    type: medicineType,
+    color: medicineColor,
+    startDate: startDate,
+    endDate: endDate,
+    timeSlots: timeSlots,
+    days: days,
+    notes: notes
+  };
+  
+  try {
+    // Save medicine to API
+    const result = await api.addMedicine(medicine);
+    
+    if (result.error) {
+      showAlert('Error', `Failed to save medicine: ${result.error}`);
+    } else {
+      showToast('Medicine saved successfully!');
+      
+      // Reset form or redirect to medicine list
+      setTimeout(() => {
+        window.location.href = 'medicine-list.html';
+      }, 1500);
+    }
+  } catch (error) {
+    console.error('Error saving medicine:', error);
+    showAlert('Error', 'Failed to save medicine. Please try again later.');
+  }
+}
+
+// Show alert modal
+function showAlert(title, message) {
+  const modal = document.getElementById('alert-modal');
+  const alertTitle = document.getElementById('alert-title');
+  const alertMessage = document.getElementById('alert-message');
+  const closeBtn = document.querySelector('.close-btn');
+  const okBtn = document.getElementById('alert-ok');
+  
+  alertTitle.textContent = title;
+  alertMessage.textContent = message;
+  
+  modal.style.display = 'flex';
+  
+  // Close modal events
+  closeBtn.onclick = function() {
+    modal.style.display = 'none';
+  };
+  
+  okBtn.onclick = function() {
+    modal.style.display = 'none';
+  };
+  
+  window.onclick = function(event) {
+    if (event.target === modal) {
+      modal.style.display = 'none';
+    }
+  };
 }
