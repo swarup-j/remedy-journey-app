@@ -49,7 +49,7 @@
     </main>
 
     <div class="add-medicine-btn">
-      <a href="medicine-form.html"><i class="fas fa-plus"></i></a>
+      <a href="medicine-details.html"><i class="fas fa-plus"></i></a>
     </div>
 
     <nav class="bottom-nav">
@@ -60,37 +60,17 @@
     </nav>
   </div>
 
-  <div id="reminder-modal" class="modal">
-    <div class="modal-content">
-      <span class="close-btn">&times;</span>
-      <h2>Set Reminder</h2>
-      <form id="reminder-form">
-        <div class="form-group">
-          <label for="reminder-time">Time</label>
-          <input type="time" id="reminder-time" required>
-        </div>
-        <div class="form-group">
-          <label>Repeat</label>
-          <div class="day-selector">
-            <label class="day"><input type="checkbox" value="mon">M</label>
-            <label class="day"><input type="checkbox" value="tue">T</label>
-            <label class="day"><input type="checkbox" value="wed">W</label>
-            <label class="day"><input type="checkbox" value="thu">T</label>
-            <label class="day"><input type="checkbox" value="fri">F</label>
-            <label class="day"><input type="checkbox" value="sat">S</label>
-            <label class="day"><input type="checkbox" value="sun">S</label>
-          </div>
-        </div>
-        <button type="submit" class="primary-btn">Save Reminder</button>
-      </form>
-    </div>
-  </div>
-
   <div id="toast-notification" class="toast-notification">
     <i class="fas fa-check-circle"></i>
     <span id="toast-message"></span>
   </div>
 
-  <script src="script.js" type="module"></script>
+  <div id="offline-banner" class="offline-banner">
+    <i class="fas fa-wifi-slash"></i>
+    <span>You are offline. Some features may be limited.</span>
+  </div>
+
+  <script src="js/app.js" type="module"></script>
+  <script src="js/pages/home.js" type="module"></script>
 </body>
 </html>

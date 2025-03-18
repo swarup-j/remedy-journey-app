@@ -54,21 +54,48 @@ export function setupOfflineDetection() {
   updateOnlineStatus();
 }
 
-// Get authentication token
-export function getAuthToken() {
-  return localStorage.getItem('authToken');
+// Format date for display
+export function formatDate(dateString) {
+  const options = { year: 'numeric', month: 'long', day: 'numeric' };
+  return new Date(dateString).toLocaleDateString(undefined, options);
 }
 
-// Check if user is authenticated
-export function isAuthenticated() {
-  return !!getAuthToken();
+// Get current date in YYYY-MM-DD format
+export function getCurrentDate() {
+  return new Date().toISOString().split('T')[0];
 }
 
-// Redirect to login if not authenticated
-export function requireAuth() {
-  if (!isAuthenticated()) {
-    window.location.href = 'login.html';
-    return false;
+// Show alert modal
+export function showAlert(title, message) {
+  const modal = document.getElementById('alert-modal');
+  
+  if (!modal) {
+    alert(`${title}: ${message}`);
+    return;
   }
-  return true;
+  
+  const alertTitle = document.getElementById('alert-title');
+  const alertMessage = document.getElementById('alert-message');
+  const closeBtn = document.querySelector('.close-btn');
+  const okBtn = document.getElementById('alert-ok');
+  
+  alertTitle.textContent = title;
+  alertMessage.textContent = message;
+  
+  modal.style.display = 'flex';
+  
+  // Close modal events
+  closeBtn.onclick = function() {
+    modal.style.display = 'none';
+  };
+  
+  okBtn.onclick = function() {
+    modal.style.display = 'none';
+  };
+  
+  window.onclick = function(event) {
+    if (event.target === modal) {
+      modal.style.display = 'none';
+    }
+  };
 }

@@ -12,30 +12,33 @@
 <body>
   <div class="app-container">
     <header>
-      <h1>Profile</h1>
+      <h1>My Profile</h1>
+      <div class="date-display" id="current-date"></div>
     </header>
 
     <main>
-      <div class="profile-section user-info">
-        <div class="profile-avatar">
-          <i class="fas fa-user-circle"></i>
-        </div>
-        <div class="profile-details">
-          <h2 id="user-name">Loading...</h2>
-          <p id="user-email">Loading...</p>
+      <div class="profile-section">
+        <div class="profile-card">
+          <div class="profile-avatar">
+            <i class="fas fa-user-circle"></i>
+          </div>
+          <div class="profile-info">
+            <h2 id="user-name">Demo User</h2>
+            <p id="user-email">user@example.com</p>
+          </div>
         </div>
       </div>
 
-      <div class="profile-section">
-        <h3>Medication Statistics</h3>
-        <div class="stat-cards">
+      <div class="statistics-section">
+        <h3>Statistics</h3>
+        <div class="stats-container">
           <div class="stat-card">
             <div class="stat-icon">
-              <i class="fas fa-chart-pie"></i>
+              <i class="fas fa-check-circle"></i>
             </div>
             <div class="stat-info">
-              <h4>Adherence Rate</h4>
-              <p id="adherence-rate">--</p>
+              <p class="stat-title">Adherence Rate</p>
+              <h3 id="adherence-rate">95%</h3>
             </div>
           </div>
           <div class="stat-card">
@@ -43,31 +46,27 @@
               <i class="fas fa-pills"></i>
             </div>
             <div class="stat-info">
-              <h4>Active Medications</h4>
-              <p id="active-medications">--</p>
+              <p class="stat-title">Active Medications</p>
+              <h3 id="active-medications">3</h3>
             </div>
           </div>
         </div>
       </div>
 
-      <div class="profile-section">
-        <h3>Account Settings</h3>
-        <div class="settings-list">
-          <button id="change-password-btn" class="settings-option">
-            <i class="fas fa-key"></i>
-            <span>Change Password</span>
-            <i class="fas fa-chevron-right"></i>
-          </button>
-          <button id="notification-settings-btn" class="settings-option">
-            <i class="fas fa-bell"></i>
-            <span>Notification Settings</span>
-            <i class="fas fa-chevron-right"></i>
-          </button>
-          <button id="logout-btn" class="settings-option">
-            <i class="fas fa-sign-out-alt"></i>
-            <span>Logout</span>
-            <i class="fas fa-chevron-right"></i>
-          </button>
+      <div class="medicine-summary-section">
+        <h3>Medicine Summary</h3>
+        <div id="medicine-summary">
+          <!-- Medicine summary will be populated here -->
+          <div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i></div>
+        </div>
+      </div>
+
+      <div class="app-info-section">
+        <h3>About MediTrack</h3>
+        <div class="app-info">
+          <p>Version 1.0.0</p>
+          <p>Running in Offline Mode</p>
+          <p>© 2023 MediTrack</p>
         </div>
       </div>
     </main>
@@ -90,7 +89,7 @@
     <span>You are offline. Some features may be limited.</span>
   </div>
 
-  <script src="script.js" type="module"></script>
-  <script src="js/auth.js" type="module"></script>
+  <script src="js/app.js" type="module"></script>
+  <script src="js/pages/profile.js" type="module"></script>
 </body>
 </html>
