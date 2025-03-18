@@ -3,6 +3,27 @@
 
 MediTrack is a comprehensive medication management app designed for mobile devices. This frontend application connects to a Java JDBC backend with a PostgreSQL database.
 
+## Backend Connection Setup
+
+To connect the frontend application to your Java JDBC backend:
+
+1. Update the API base URL in `js/config.js`:
+   ```javascript
+   const config = {
+     API_BASE_URL: 'http://your-server-ip:port/api', // Update with your JDBC server URL
+     DEFAULT_USER_ID: 1, // Default user ID for all operations
+     STORAGE_PREFIX: 'meditrack_' // Prefix for localStorage keys
+   };
+   ```
+
+2. Ensure your backend implements the following API endpoints with the expected request and response formats.
+
+3. Configure CORS on your Java backend to allow requests from your frontend application's origin.
+
+4. Start your Java JDBC server before launching the frontend application.
+
+5. The application uses a default userId of 1 for all operations, so make sure this user exists in your database.
+
 ## API Endpoints
 
 The app uses the following API endpoints for communication with the backend:
@@ -17,8 +38,6 @@ The app uses the following API endpoints for communication with the backend:
 | `/api/medicines/taken` | POST | Mark medicine as taken | `{ medicineId, date, timeSlot }` | Success message |
 | `/api/adherence` | GET | Get adherence statistics | - | `{ adherenceRate, activeMedicines }` |
 | `/api/users/profile` | GET | Get user profile data | - | User profile object |
-| `/api/auth/login` | POST | Login user | `{ email, password }` | User with auth token |
-| `/api/auth/register` | POST | Register new user | User registration data | Created user |
 
 ## Data Models
 
@@ -35,13 +54,15 @@ The app uses the following API endpoints for communication with the backend:
   "frequency": "string",
   "timeSlots": ["string"],
   "days": ["string"],
-  "notes": "string"
+  "notes": "string",
+  "userId": "number"
 }
 ```
 
 ### User Profile
 ```json
 {
+  "id": "number",
   "name": "string",
   "email": "string"
 }
@@ -55,38 +76,26 @@ The app uses the following API endpoints for communication with the backend:
 }
 ```
 
-### Authentication Response
-```json
-{
-  "token": "string",
-  "name": "string",
-  "email": "string"
-}
-```
+## Backend Implementation Requirements
 
-### Registration Request
-```json
-{
-  "name": "string",
-  "email": "string",
-  "password": "string"
-}
-```
+1. **Database Schema**: Create tables for medicines, users, and medicine_taken records.
 
-## Offline Support
+2. **User Management**: Since the app uses a default user (ID=1), create this user in your database.
 
-The application has built-in offline support, storing data locally when the backend server is unavailable. Changes are synchronized when the connection is restored.
+3. **API Implementation**: Implement all the endpoints listed above in your Java JDBC backend.
+
+4. **Error Handling**: Ensure proper error responses are sent back to the frontend.
+
+5. **Data Validation**: Validate incoming data before storing in the database.
 
 ## Features
 
-- User authentication (login/register)
 - View and manage all medications
 - Schedule daily, weekly, or custom medication routines
 - Track adherence to medication schedules
 - Calendar view for medication planning
 - User profile with statistics
 - Search and filter medications
-- Offline functionality
 - Color-coded medicine tracking
 
 ## Technical Implementation
@@ -94,6 +103,4 @@ The application has built-in offline support, storing data locally when the back
 - Pure HTML, CSS, and JavaScript
 - Modular JavaScript with ES modules
 - API integration with fetch API
-- Local storage fallback for offline use
 - Mobile-first responsive design
-- Token-based authentication

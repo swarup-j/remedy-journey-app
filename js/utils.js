@@ -16,44 +16,6 @@ export function showToast(message, duration = 3000) {
   }
 }
 
-// Check online status
-export async function checkOnlineStatus() {
-  try {
-    const online = navigator.onLine;
-    if (!online) return false;
-    
-    // Additional check by pinging the server
-    const response = await fetch(`${window.location.origin}/ping`, { 
-      method: 'HEAD',
-      cache: 'no-store',
-      timeout: 2000
-    });
-    return response.ok;
-  } catch (error) {
-    console.log('Connection check failed:', error);
-    return false;
-  }
-}
-
-// Setup offline detection
-export function setupOfflineDetection() {
-  const offlineBanner = document.getElementById('offline-banner');
-  
-  function updateOnlineStatus() {
-    if (navigator.onLine) {
-      offlineBanner.classList.remove('show');
-    } else {
-      offlineBanner.classList.add('show');
-    }
-  }
-  
-  window.addEventListener('online', updateOnlineStatus);
-  window.addEventListener('offline', updateOnlineStatus);
-  
-  // Initial check
-  updateOnlineStatus();
-}
-
 // Format date for display
 export function formatDate(dateString) {
   const options = { year: 'numeric', month: 'long', day: 'numeric' };
