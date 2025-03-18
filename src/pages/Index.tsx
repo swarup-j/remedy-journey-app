@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
-import { CalendarIcon, Clock, Pills, CheckCircle, Calendar, User } from "lucide-react";
+import { CalendarIcon, Clock, Pill, CheckCircle, Calendar, User } from "lucide-react";
 
 const Index = () => {
   const { toast } = useToast();
@@ -116,7 +116,7 @@ const Index = () => {
                 <p className="text-white/80 text-sm">Remember to take your medications on time.</p>
               </div>
               <div className="text-white/80 text-4xl">
-                <Pills />
+                <Pill />
               </div>
             </CardContent>
           </Card>
@@ -139,7 +139,7 @@ const Index = () => {
             ) : medicines.length === 0 ? (
               <Card className="border border-dashed">
                 <CardContent className="flex flex-col items-center justify-center p-6">
-                  <Pills className="h-10 w-10 text-muted-foreground mb-2"/>
+                  <Pill className="h-10 w-10 text-muted-foreground mb-2"/>
                   <p className="text-muted-foreground">No medications scheduled for today</p>
                 </CardContent>
               </Card>
@@ -206,12 +206,12 @@ const Index = () => {
                     <CardContent className="p-3 text-sm">
                       {hour.meds > 0 ? (
                         <div className="flex items-center gap-2">
-                          <Pills className="h-4 w-4 text-primary" />
+                          <Pill className="h-4 w-4 text-primary" />
                           <span>{hour.meds} medication{hour.meds > 1 ? 's' : ''}</span>
                         </div>
                       ) : (
                         <div className="flex items-center gap-2 text-muted-foreground">
-                          <Pills className="h-4 w-4" />
+                          <Pill className="h-4 w-4" />
                           <span>No medications</span>
                         </div>
                       )}
@@ -234,7 +234,7 @@ const Index = () => {
 
       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t flex justify-around items-center h-16 z-10 max-w-md mx-auto">
         <a href="index.html" className="flex flex-col items-center justify-center text-primary">
-          <Pills className="h-5 w-5" />
+          <Pill className="h-5 w-5" />
           <span className="text-xs mt-1">Home</span>
         </a>
         <a href="medicine-list.html" className="flex flex-col items-center justify-center text-muted-foreground">

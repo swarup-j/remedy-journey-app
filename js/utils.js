@@ -99,3 +99,10 @@ export function showAlert(title, message) {
     }
   };
 }
+
+// Authentication check function (always returns true as we're using default user)
+export function requireAuth() {
+  // Since we're using default userId=1, no authentication is needed
+  // This function always returns true
+  return true;
+}
