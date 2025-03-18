@@ -32,11 +32,15 @@
       <section class="today-section">
         <div class="section-header-row">
           <h2>Today's Medications</h2>
-          <a href="medicine-list.html" class="view-all-link">View All</a>
+          <a href="medicine-list.html" class="view-all-link">View All <i class="fas fa-chevron-right"></i></a>
         </div>
         <div class="medication-list" id="today-list">
           <!-- Medications will be added here dynamically -->
-          <div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i></div>
+          <div class="loading-spinner">
+            <div class="spinner-wrapper">
+              <div class="spinner-circle"></div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -54,7 +58,7 @@
 
     <nav class="bottom-nav">
       <a href="index.html" class="active"><i class="fas fa-home"></i><span>Home</span></a>
-      <a href="medicine-list.html"><i class="fas fa-list"></i><span>Medicines</span></a>
+      <a href="medicine-list.html"><i class="fas fa-pills"></i><span>Medicines</span></a>
       <a href="calendar.html"><i class="fas fa-calendar-alt"></i><span>Calendar</span></a>
       <a href="profile.html"><i class="fas fa-user"></i><span>Profile</span></a>
     </nav>

@@ -16,7 +16,11 @@ async function initializeHomePage() {
   // Set current date
   const currentDateElement = document.getElementById('current-date');
   if (currentDateElement) {
-    currentDateElement.textContent = new Date().toLocaleDateString();
+    currentDateElement.textContent = new Date().toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short', 
+      day: 'numeric'
+    });
   }
   
   // Set greeting based on time of day
@@ -53,7 +57,14 @@ async function loadTodaysMedicines() {
   const todayList = document.getElementById('today-list');
   if (!todayList) return;
   
-  todayList.innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i></div>';
+  // Modern loading spinner
+  todayList.innerHTML = `
+    <div class="loading-spinner">
+      <div class="spinner-wrapper">
+        <div class="spinner-circle"></div>
+      </div>
+    </div>
+  `;
   
   try {
     const medicines = await fetchMedicines();
@@ -71,7 +82,12 @@ async function loadTodaysMedicines() {
     });
     
     if (todaysMedicines.length === 0) {
-      todayList.innerHTML = '<p class="no-meds-message">No medications scheduled for today.</p>';
+      todayList.innerHTML = `
+        <div class="empty-state">
+          <i class="fas fa-prescription-bottle-alt"></i>
+          <p>No medications scheduled for today.</p>
+        </div>
+      `;
       return;
     }
     
@@ -82,7 +98,7 @@ async function loadTodaysMedicines() {
     const takenMeds = JSON.parse(localStorage.getItem('meditrack_taken_meds') || '[]');
     const todayTakenMeds = takenMeds.filter(item => item.date === todayStr);
     
-    // Display each medicine
+    // Display each medicine with modern card design
     todaysMedicines.forEach(medicine => {
       const medicineCard = document.createElement('div');
       medicineCard.classList.add('medicine-card');
@@ -96,6 +112,7 @@ async function loadTodaysMedicines() {
         return { timeSlot, taken };
       });
       
+      // Create modern medicine card
       medicineCard.innerHTML = `
         <div class="medicine-color" style="background-color: ${medicine.color}"></div>
         <div class="medicine-info">
@@ -104,9 +121,9 @@ async function loadTodaysMedicines() {
           <div class="time-slots">
             ${timeSlotStatus.map(slot => `
               <div class="time-slot ${slot.taken ? 'taken' : ''}">
-                <span>${slot.timeSlot}</span>
-                <button class="take-btn" data-time="${slot.timeSlot}" data-id="${medicine.id}" ${slot.taken ? 'disabled' : ''}>
-                  ${slot.taken ? '<i class="fas fa-check"></i>' : 'Take'}
+                <span><i class="far fa-clock"></i> ${slot.timeSlot}</span>
+                <button class="take-btn ${slot.taken ? 'taken' : ''}" data-time="${slot.timeSlot}" data-id="${medicine.id}" ${slot.taken ? 'disabled' : ''}>
+                  ${slot.taken ? '<i class="fas fa-check"></i> Taken' : 'Take'}
                 </button>
               </div>
             `).join('')}
@@ -118,17 +135,20 @@ async function loadTodaysMedicines() {
       todayList.appendChild(medicineCard);
       
       // Add event listeners to take buttons
-      const takeButtons = medicineCard.querySelectorAll('.take-btn');
+      const takeButtons = medicineCard.querySelectorAll('.take-btn:not(.taken)');
       takeButtons.forEach(button => {
-        if (!button.disabled) {
-          button.addEventListener('click', handleTakeMedicine);
-        }
+        button.addEventListener('click', handleTakeMedicine);
       });
     });
     
   } catch (error) {
     console.error('Error loading medicines:', error);
-    todayList.innerHTML = '<p class="error-message">Failed to load medications. Please try again.</p>';
+    todayList.innerHTML = `
+      <div class="error-state">
+        <i class="fas fa-exclamation-circle"></i>
+        <p>Failed to load medications. Please try again.</p>
+      </div>
+    `;
   }
 }
 
@@ -147,7 +167,8 @@ async function handleTakeMedicine(event) {
     await markMedicineAsTaken(parseInt(medicineId), today, timeSlot);
     
     // Update UI
-    button.innerHTML = '<i class="fas fa-check"></i>';
+    button.innerHTML = '<i class="fas fa-check"></i> Taken';
+    button.classList.add('taken');
     button.closest('.time-slot').classList.add('taken');
     
     showToast('Medicine marked as taken!');
@@ -173,24 +194,29 @@ function initializeUpcomingTimeline() {
   let nextHours = [];
   for (let i = 1; i <= 3; i++) {
     let nextHour = (hours + i) % 24;
+    let displayHour = nextHour > 12 ? nextHour - 12 : nextHour;
+    if (displayHour === 0) displayHour = 12;
+    
     nextHours.push({
-      time: `${nextHour}:${minutes < 10 ? '0' + minutes : minutes}`,
+      time: `${displayHour}:${minutes < 10 ? '0' + minutes : minutes}`,
       label: nextHour < 12 ? 'AM' : 'PM',
       meds: i === 1 ? 2 : (i === 2 ? 1 : 0) // Demo data
     });
   }
   
-  // Create timeline items
+  // Create modern timeline items
   timeline.innerHTML = nextHours.map(hour => `
     <div class="timeline-item">
-      <div class="timeline-time">
-        <div class="time">${hour.time}</div>
-        <div class="ampm">${hour.label}</div>
+      <div class="time">
+        <div class="hour">${hour.time}</div>
+        <div class="period">${hour.label}</div>
       </div>
       <div class="timeline-content">
-        ${hour.meds > 0 
-          ? `<div class="timeline-pills">${hour.meds} medication${hour.meds > 1 ? 's' : ''}</div>` 
-          : '<div class="timeline-pills empty">No medications</div>'}
+        <div class="timeline-pills ${hour.meds > 0 ? '' : 'empty'}">
+          ${hour.meds > 0 
+            ? `<i class="fas fa-pills"></i> ${hour.meds} medication${hour.meds > 1 ? 's' : ''}` 
+            : '<i class="fas fa-pills"></i> No medications'}
+        </div>
       </div>
     </div>
   `).join('');
