@@ -1,6 +1,5 @@
 
 // Home page initialization and functionality
-import { fetchMedicines, markMedicineAsTaken, markMedicineAsUntaken } from '../api/medicineApi.js';
 import { showToast } from '../utils.js';
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -49,6 +48,56 @@ function setGreeting() {
   greetingElement.textContent = `${greeting}!`;
 }
 
+// Get dummy medicines data
+function getDummyMedicines() {
+  return [
+    {
+      id: 1,
+      name: "Aspirin",
+      type: "Tablet",
+      color: "#F2FCE2",
+      timeSlots: ["08:00", "20:00"],
+      days: ["Mon", "Wed", "Fri"],
+      startDate: "2023-01-01",
+      endDate: "2023-12-31",
+      taken: [{ timeSlot: "08:00", taken: true }]
+    },
+    {
+      id: 2,
+      name: "Vitamin D",
+      type: "Capsule",
+      color: "#FFDEE2",
+      timeSlots: ["09:00"],
+      days: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+      startDate: "2023-01-01",
+      endDate: "2023-12-31",
+      taken: []
+    },
+    {
+      id: 3,
+      name: "Ibuprofen",
+      type: "Tablet",
+      color: "#FEF7CD",
+      timeSlots: ["14:00", "22:00"],
+      days: ["Tue", "Thu", "Sat"],
+      startDate: "2023-01-01",
+      endDate: "2023-12-31",
+      taken: [{ timeSlot: "14:00", taken: true }]
+    },
+    {
+      id: 4,
+      name: "Lisinopril",
+      type: "Tablet",
+      color: "#E2F5FC",
+      timeSlots: ["08:00"],
+      days: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+      startDate: "2023-01-01",
+      endDate: "2023-12-31",
+      taken: []
+    }
+  ];
+}
+
 // Load today's medicines
 async function loadTodaysMedicines() {
   const todayList = document.getElementById('today-list');
@@ -64,9 +113,10 @@ async function loadTodaysMedicines() {
   `;
   
   try {
-    console.log('Fetching medicines for today...');
-    const medicines = await fetchMedicines();
-    console.log('Medicines received:', medicines);
+    console.log('Loading dummy medicines for today...');
+    // Use dummy data instead of API
+    const medicines = getDummyMedicines();
+    console.log('Medicines loaded:', medicines);
     
     const today = new Date();
     const dayOfWeek = today.toLocaleDateString('en-US', { weekday: 'short' });
@@ -174,7 +224,9 @@ async function handleMedicineAction(event) {
     if (currentStatus === 'taken') {
       // Currently taken, so untake it
       button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-      await markMedicineAsUntaken(medicineId, today, timeSlot);
+      
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 500));
       
       // Update UI for untaken state
       button.innerHTML = '<i class="far fa-square"></i> Take';
@@ -189,7 +241,9 @@ async function handleMedicineAction(event) {
     } else {
       // Currently not taken, so take it
       button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-      await markMedicineAsTaken(medicineId, today, timeSlot);
+      
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 500));
       
       // Update UI for taken state
       button.innerHTML = '<i class="fas fa-check"></i> Taken <i class="fas fa-undo toggle-icon"></i>';

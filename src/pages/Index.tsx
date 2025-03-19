@@ -5,6 +5,46 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { useToast } from "@/hooks/use-toast";
 import { CalendarIcon, Clock, Pill, CheckCircle, Calendar, User, Square, RotateCcw } from "lucide-react";
 
+// Dummy medicines data
+const dummyMedicines = [
+  {
+    id: 1,
+    name: "Aspirin",
+    type: "Tablet",
+    color: "#F2FCE2",
+    timeSlots: ["08:00", "20:00"],
+    days: ["Mon", "Wed", "Fri"],
+    taken: [{ timeSlot: "08:00", taken: true }]
+  },
+  {
+    id: 2,
+    name: "Vitamin D",
+    type: "Capsule",
+    color: "#FFDEE2",
+    timeSlots: ["09:00"],
+    days: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+    taken: []
+  },
+  {
+    id: 3,
+    name: "Ibuprofen",
+    type: "Tablet",
+    color: "#FEF7CD",
+    timeSlots: ["14:00", "22:00"],
+    days: ["Tue", "Thu", "Sat"],
+    taken: [{ timeSlot: "14:00", taken: true }]
+  },
+  {
+    id: 4,
+    name: "Lisinopril",
+    type: "Tablet",
+    color: "#E2F5FC",
+    timeSlots: ["08:00"],
+    days: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+    taken: []
+  }
+];
+
 const Index = () => {
   const { toast } = useToast();
   const [greeting, setGreeting] = useState("Good day");
@@ -28,38 +68,18 @@ const Index = () => {
       day: 'numeric' 
     }));
 
-    // Fetch medicines (simulated)
+    // Simulate loading medicines
     setTimeout(() => {
-      const dummyMedicines = [
-        {
-          id: 1,
-          name: "Aspirin",
-          type: "Tablet",
-          color: "#F2FCE2",
-          timeSlots: ["08:00", "20:00"],
-          days: ["Mon", "Wed", "Fri"],
-          taken: [{ timeSlot: "08:00", taken: true }]
-        },
-        {
-          id: 2,
-          name: "Vitamin D",
-          type: "Capsule",
-          color: "#FFDEE2",
-          timeSlots: ["09:00"],
-          days: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-          taken: []
-        },
-        {
-          id: 3,
-          name: "Ibuprofen",
-          type: "Tablet",
-          color: "#FEF7CD",
-          timeSlots: ["14:00", "22:00"],
-          days: ["Tue", "Thu", "Sat"],
-          taken: [{ timeSlot: "14:00", taken: true }]
-        }
-      ];
-      setMedicines(dummyMedicines);
+      // Get current day of week
+      const today = new Date();
+      const dayOfWeek = today.toLocaleDateString('en-US', { weekday: 'short' });
+      
+      // Filter medicines for today
+      const todaysMedicines = dummyMedicines.filter(medicine => 
+        medicine.days.includes(dayOfWeek)
+      );
+      
+      setMedicines(todaysMedicines);
 
       // Create upcoming timeline
       const now = new Date();
