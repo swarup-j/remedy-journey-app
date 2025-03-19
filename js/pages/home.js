@@ -1,12 +1,9 @@
 
 // Home page initialization and functionality
 import { fetchMedicines, markMedicineAsTaken } from '../api/medicineApi.js';
-import { showToast, setupOfflineDetection, getCurrentDate } from '../utils.js';
+import { showToast } from '../utils.js';
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Setup offline detection
-  setupOfflineDetection();
-  
   // Initialize the home page
   initializeHomePage();
 });
@@ -67,19 +64,28 @@ async function loadTodaysMedicines() {
   `;
   
   try {
+    console.log('Fetching medicines for today...');
     const medicines = await fetchMedicines();
+    console.log('Medicines received:', medicines);
+    
     const today = new Date();
     const dayOfWeek = today.toLocaleDateString('en-US', { weekday: 'short' });
     const todayStr = getCurrentDate();
     
     // Filter medicines for today
     const todaysMedicines = medicines.filter(medicine => {
+      // If startDate or endDate are missing, include the medicine anyway
+      const hasValidDates = medicine.startDate && medicine.endDate;
+      if (!hasValidDates) return true;
+      
       return (
         new Date(medicine.startDate) <= today &&
         new Date(medicine.endDate) >= today &&
         medicine.days.includes(dayOfWeek)
       );
     });
+    
+    console.log('Today\'s medicines:', todaysMedicines);
     
     if (todaysMedicines.length === 0) {
       todayList.innerHTML = `
@@ -220,4 +226,10 @@ function initializeUpcomingTimeline() {
       </div>
     </div>
   `).join('');
+}
+
+// Get current date as YYYY-MM-DD
+function getCurrentDate() {
+  const today = new Date();
+  return today.toISOString().slice(0, 10);
 }
