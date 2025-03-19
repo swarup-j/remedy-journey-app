@@ -1,6 +1,6 @@
 
 // Home page initialization and functionality
-import { fetchMedicines, markMedicineAsTaken } from '../api/medicineApi.js';
+import { fetchMedicines, markMedicineAsTaken, markMedicineAsUntaken } from '../api/medicineApi.js';
 import { showToast } from '../utils.js';
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -113,7 +113,7 @@ async function loadTodaysMedicines() {
       const timeSlotStatus = medicine.timeSlots.map(timeSlot => {
         const taken = todayTakenMeds.some(item => 
           item.medicineId === medicine.id && item.timeSlot === timeSlot
-        );
+        ) || (medicine.taken && medicine.taken.some(t => t.timeSlot === timeSlot && t.taken));
         
         return { timeSlot, taken };
       });
@@ -128,8 +128,10 @@ async function loadTodaysMedicines() {
             ${timeSlotStatus.map(slot => `
               <div class="time-slot ${slot.taken ? 'taken' : ''}">
                 <span><i class="far fa-clock"></i> ${slot.timeSlot}</span>
-                <button class="take-btn ${slot.taken ? 'taken' : ''}" data-time="${slot.timeSlot}" data-id="${medicine.id}" ${slot.taken ? 'disabled' : ''}>
-                  ${slot.taken ? '<i class="fas fa-check"></i> Taken' : 'Take'}
+                <button class="take-btn ${slot.taken ? 'taken' : ''}" data-time="${slot.timeSlot}" data-id="${medicine.id}" data-status="${slot.taken ? 'taken' : 'not-taken'}">
+                  ${slot.taken ? 
+                    '<i class="fas fa-check"></i> Taken <i class="fas fa-undo toggle-icon"></i>' : 
+                    '<i class="far fa-square"></i> Take'}
                 </button>
               </div>
             `).join('')}
@@ -140,10 +142,10 @@ async function loadTodaysMedicines() {
       // Add to medicine list
       todayList.appendChild(medicineCard);
       
-      // Add event listeners to take buttons
-      const takeButtons = medicineCard.querySelectorAll('.take-btn:not(.taken)');
-      takeButtons.forEach(button => {
-        button.addEventListener('click', handleTakeMedicine);
+      // Add event listeners to take/untake buttons
+      const actionButtons = medicineCard.querySelectorAll('.take-btn');
+      actionButtons.forEach(button => {
+        button.addEventListener('click', handleMedicineAction);
       });
     });
     
@@ -158,32 +160,80 @@ async function loadTodaysMedicines() {
   }
 }
 
-// Handle take medicine button click
-async function handleTakeMedicine(event) {
+// Handle take or untake medicine button click
+async function handleMedicineAction(event) {
   const button = event.currentTarget;
-  const medicineId = button.dataset.id;
+  const medicineId = parseInt(button.dataset.id);
   const timeSlot = button.dataset.time;
+  const currentStatus = button.dataset.status;
   const today = getCurrentDate();
   
   try {
     button.disabled = true;
-    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
     
-    // Mark medicine as taken
-    await markMedicineAsTaken(parseInt(medicineId), today, timeSlot);
+    if (currentStatus === 'taken') {
+      // Currently taken, so untake it
+      button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+      await markMedicineAsUntaken(medicineId, today, timeSlot);
+      
+      // Update UI for untaken state
+      button.innerHTML = '<i class="far fa-square"></i> Take';
+      button.classList.remove('taken');
+      button.dataset.status = 'not-taken';
+      button.closest('.time-slot').classList.remove('taken');
+      
+      showToast('Medicine marked as not taken');
+      
+      // Update local storage
+      updateLocalStorage(medicineId, timeSlot, today, false);
+    } else {
+      // Currently not taken, so take it
+      button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+      await markMedicineAsTaken(medicineId, today, timeSlot);
+      
+      // Update UI for taken state
+      button.innerHTML = '<i class="fas fa-check"></i> Taken <i class="fas fa-undo toggle-icon"></i>';
+      button.classList.add('taken');
+      button.dataset.status = 'taken';
+      button.closest('.time-slot').classList.add('taken');
+      
+      showToast('Medicine marked as taken!');
+      
+      // Update local storage
+      updateLocalStorage(medicineId, timeSlot, today, true);
+    }
     
-    // Update UI
-    button.innerHTML = '<i class="fas fa-check"></i> Taken';
-    button.classList.add('taken');
-    button.closest('.time-slot').classList.add('taken');
-    
-    showToast('Medicine marked as taken!');
-  } catch (error) {
-    console.error('Error marking medicine as taken:', error);
     button.disabled = false;
-    button.textContent = 'Take';
-    showToast('Failed to mark medicine as taken. Please try again.');
+  } catch (error) {
+    console.error('Error updating medicine status:', error);
+    button.disabled = false;
+    button.innerHTML = currentStatus === 'taken' ? 
+      '<i class="fas fa-check"></i> Taken <i class="fas fa-undo toggle-icon"></i>' : 
+      '<i class="far fa-square"></i> Take';
+    showToast('Failed to update medicine status. Please try again.');
   }
+}
+
+// Update localStorage with medicine taken status
+function updateLocalStorage(medicineId, timeSlot, date, isTaken) {
+  const takenMeds = JSON.parse(localStorage.getItem('meditrack_taken_meds') || '[]');
+  
+  // Remove existing entry if any
+  const filteredMeds = takenMeds.filter(
+    item => !(item.medicineId === medicineId && item.timeSlot === timeSlot && item.date === date)
+  );
+  
+  // Add new entry if taken
+  if (isTaken) {
+    filteredMeds.push({
+      medicineId,
+      timeSlot,
+      date,
+      takenAt: new Date().toISOString()
+    });
+  }
+  
+  localStorage.setItem('meditrack_taken_meds', JSON.stringify(filteredMeds));
 }
 
 // Initialize upcoming timeline

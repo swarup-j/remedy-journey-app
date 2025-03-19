@@ -2,8 +2,8 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { useToast } from "@/components/ui/use-toast";
-import { CalendarIcon, Clock, Pill, CheckCircle, Calendar, User } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { CalendarIcon, Clock, Pill, CheckCircle, Calendar, User, Square, RotateCcw } from "lucide-react";
 
 const Index = () => {
   const { toast } = useToast();
@@ -85,16 +85,31 @@ const Index = () => {
     // Mark medicine as taken
     setMedicines(medicines.map(med => {
       if (med.id === medicineId) {
-        return {
-          ...med,
-          taken: [...med.taken, { timeSlot, taken: true }]
-        };
+        const isTaken = med.taken.some(t => t.timeSlot === timeSlot);
+        
+        if (isTaken) {
+          // If already taken, untake it
+          return {
+            ...med,
+            taken: med.taken.filter(t => t.timeSlot !== timeSlot)
+          };
+        } else {
+          // If not taken, take it
+          return {
+            ...med,
+            taken: [...med.taken, { timeSlot, taken: true }]
+          };
+        }
       }
       return med;
     }));
 
+    // Get the medicine to check its current state
+    const medicine = medicines.find(m => m.id === medicineId);
+    const isTaken = medicine?.taken.some(t => t.timeSlot === timeSlot);
+
     toast({
-      title: "Medicine marked as taken!",
+      title: isTaken ? "Medicine marked as not taken" : "Medicine marked as taken!",
       description: "Your medication log has been updated.",
     });
   };
@@ -161,7 +176,8 @@ const Index = () => {
                           {medicine.timeSlots.map(timeSlot => {
                             const isTaken = medicine.taken.some(t => t.timeSlot === timeSlot);
                             return (
-                              <div key={timeSlot} className="flex items-center justify-between">
+                              <div key={timeSlot} 
+                                className={`flex items-center justify-between p-2 rounded ${isTaken ? 'bg-green-50' : ''}`}>
                                 <div className="flex items-center gap-2">
                                   <Clock className="h-4 w-4 text-muted-foreground" />
                                   <span className="text-sm">{timeSlot}</span>
@@ -169,13 +185,18 @@ const Index = () => {
                                 <Button
                                   size="sm"
                                   variant={isTaken ? "outline" : "default"}
-                                  className={isTaken ? "pointer-events-none" : ""}
-                                  onClick={() => !isTaken && handleTakeMedicine(medicine.id, timeSlot)}
+                                  className={isTaken ? "border-green-500 text-green-600 hover:bg-green-50" : ""}
+                                  onClick={() => handleTakeMedicine(medicine.id, timeSlot)}
                                 >
                                   {isTaken ? (
-                                    <><CheckCircle className="h-4 w-4 mr-1" /> Taken</>
+                                    <div className="flex items-center">
+                                      <CheckCircle className="h-4 w-4 mr-1" /> Taken
+                                      <RotateCcw className="h-3 w-3 ml-1 opacity-70" />
+                                    </div>
                                   ) : (
-                                    "Take"
+                                    <div className="flex items-center">
+                                      <Square className="h-4 w-4 mr-1" /> Take
+                                    </div>
                                   )}
                                 </Button>
                               </div>

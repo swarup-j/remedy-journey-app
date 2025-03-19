@@ -1,3 +1,4 @@
+
 // Medicine API operations
 import config from '../config.js';
 
@@ -163,6 +164,33 @@ export async function markMedicineAsTaken(medicineId, date, timeSlot) {
     return await response.json();
   } catch (error) {
     console.error("Error marking medicine as taken:", error);
+    return { error: error.message };
+  }
+}
+
+// Mark medicine as untaken - new function to remove a medicine from taken list
+export async function markMedicineAsUntaken(medicineId, date, timeSlot) {
+  try {
+    const response = await fetch(`${config.API_BASE_URL}/medicines/untaken`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        medicineId,
+        date,
+        timeSlot,
+        userId: config.DEFAULT_USER_ID
+      }),
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error("Error marking medicine as untaken:", error);
     return { error: error.message };
   }
 }

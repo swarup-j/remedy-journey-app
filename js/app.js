@@ -11,9 +11,40 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Initialize the toast notification system
   initializeToast();
+  
+  // Add custom CSS for the toggle icon
+  addCustomStyles();
 });
 
 // Initialize toast notifications
 function initializeToast() {
   // No additional initialization needed beyond what's in utils.js
+}
+
+// Add custom styles for new UI elements
+function addCustomStyles() {
+  const styleElement = document.createElement('style');
+  styleElement.textContent = `
+    .time-slot {
+      transition: all 0.3s ease;
+    }
+    .time-slot.taken {
+      background-color: rgba(0, 128, 0, 0.05);
+    }
+    .take-btn.taken {
+      background-color: transparent;
+      color: #4CAF50;
+      border: 1px solid #4CAF50;
+    }
+    .toggle-icon {
+      font-size: 0.8em;
+      margin-left: 5px;
+      opacity: 0.7;
+    }
+    .take-btn.taken:hover .toggle-icon {
+      transform: rotate(-45deg);
+      opacity: 1;
+    }
+  `;
+  document.head.appendChild(styleElement);
 }
