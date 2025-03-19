@@ -35,7 +35,7 @@ The app uses the following API endpoints for communication with the backend:
 | `/api/medicines/:id` | GET | Get a single medicine by ID | - | Medicine object |
 | `/api/medicines/:id` | PUT | Update a medicine | Updated medicine object | Updated medicine |
 | `/api/medicines/:id` | DELETE | Delete a medicine | - | Success message |
-| `/api/medicines/taken` | POST | Mark medicine as taken | `{ medicineId, date, timeSlot }` | Success message |
+| `/api/medicines/taken` | POST | Mark medicine as taken | `{ medicineId, date, timeSlot, userId }` | Success message |
 | `/api/adherence` | GET | Get adherence statistics | - | `{ adherenceRate, activeMedicines }` |
 | `/api/users/profile` | GET | Get user profile data | - | User profile object |
 
@@ -78,15 +78,71 @@ The app uses the following API endpoints for communication with the backend:
 
 ## Backend Implementation Requirements
 
-1. **Database Schema**: Create tables for medicines, users, and medicine_taken records.
+1. **Database Schema**:
+   - Create a `medicines` table with columns for all medicine fields (id, name, type, color, dosage, startDate, endDate, frequency, notes, userId)
+   - Create a `medicine_timeslots` table to store time slots for each medicine (medicine_id, time_slot)
+   - Create a `medicine_days` table to store days for each medicine (medicine_id, day)
+   - Create a `users` table with columns for user information (id, name, email)
+   - Create a `medicine_taken` table to log when medicines are taken (id, medicine_id, date, time_slot, user_id)
 
-2. **User Management**: Since the app uses a default user (ID=1), create this user in your database.
+2. **Java JDBC Implementation**:
+   - Create DAO (Data Access Object) classes for each entity
+   - Implement CRUD operations for medicines
+   - Implement user profile retrieval
+   - Add methods to mark medicines as taken
+   - Create API endpoints that return JSON responses
 
-3. **API Implementation**: Implement all the endpoints listed above in your Java JDBC backend.
+3. **SQL Schema Example**:
+   ```sql
+   CREATE TABLE users (
+     id SERIAL PRIMARY KEY,
+     name VARCHAR(100) NOT NULL,
+     email VARCHAR(100)
+   );
 
-4. **Error Handling**: Ensure proper error responses are sent back to the frontend.
+   CREATE TABLE medicines (
+     id SERIAL PRIMARY KEY,
+     name VARCHAR(100) NOT NULL,
+     type VARCHAR(50) NOT NULL,
+     color VARCHAR(20) NOT NULL,
+     dosage VARCHAR(50),
+     start_date DATE NOT NULL,
+     end_date DATE NOT NULL,
+     frequency VARCHAR(20),
+     notes TEXT,
+     user_id INTEGER REFERENCES users(id)
+   );
 
-5. **Data Validation**: Validate incoming data before storing in the database.
+   CREATE TABLE medicine_timeslots (
+     id SERIAL PRIMARY KEY,
+     medicine_id INTEGER REFERENCES medicines(id) ON DELETE CASCADE,
+     time_slot TIME NOT NULL
+   );
+
+   CREATE TABLE medicine_days (
+     id SERIAL PRIMARY KEY,
+     medicine_id INTEGER REFERENCES medicines(id) ON DELETE CASCADE,
+     day VARCHAR(10) NOT NULL
+   );
+
+   CREATE TABLE medicine_taken (
+     id SERIAL PRIMARY KEY,
+     medicine_id INTEGER REFERENCES medicines(id) ON DELETE CASCADE,
+     date DATE NOT NULL,
+     time_slot TIME NOT NULL,
+     user_id INTEGER REFERENCES users(id)
+   );
+   ```
+
+4. **Error Handling**:
+   - Return appropriate HTTP status codes
+   - Include error messages in the response body
+   - Handle database connection errors gracefully
+
+5. **API Response Format**:
+   - Return JSON responses with appropriate content-type headers
+   - Use consistent response formats across all endpoints
+   - Include status and message fields in the response
 
 ## Features
 
