@@ -1,4 +1,3 @@
-
 // Main application entry point
 import { showToast } from './utils.js';
 import config from './config.js';
@@ -48,3 +47,9 @@ function addCustomStyles() {
   `;
   document.head.appendChild(styleElement);
 }
+
+// Import our notification styles manually since we don't have a bundler
+const notificationStyles = document.createElement('link');
+notificationStyles.rel = 'stylesheet';
+notificationStyles.href = 'js/styles/notifications.css';
+document.head.appendChild(notificationStyles);

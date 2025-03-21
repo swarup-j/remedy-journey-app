@@ -1,6 +1,6 @@
-
 // Home page initialization and functionality
 import { showToast } from '../utils.js';
+import '../pages/home-notifications.js'; // Import notifications for home page
 
 document.addEventListener('DOMContentLoaded', () => {
   // Initialize the home page

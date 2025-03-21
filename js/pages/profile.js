@@ -13,6 +13,7 @@ const userBloodGroupElement = document.getElementById('user-blood-group');
 const adherenceRateElement = document.getElementById('adherence-rate');
 const activeMedicationsElement = document.getElementById('active-medications');
 const medicineSummaryElement = document.getElementById('medicine-summary');
+const logoutBtn = document.getElementById('logout-btn');
 
 // Find Doctor Modal Elements
 const findDoctorBtn = document.getElementById('find-doctor-btn');
@@ -22,7 +23,9 @@ const searchDoctorsBtn = document.getElementById('search-doctors-btn');
 const doctorsResults = document.getElementById('doctors-results');
 
 // Display current date
-currentDateElement.textContent = formatDate(new Date());
+if (currentDateElement) {
+  currentDateElement.textContent = formatDate(new Date());
+}
 
 // Fetch and display user profile
 async function loadUserProfile() {
@@ -106,6 +109,23 @@ function loadMedicineSummary() {
   }, 1000);
 }
 
+// Logout functionality
+if (logoutBtn) {
+  logoutBtn.addEventListener('click', () => {
+    // Clear any stored session/user data
+    localStorage.removeItem('user_token');
+    localStorage.removeItem('user_data');
+    
+    // Show toast message
+    showToast('Logged out successfully');
+    
+    // Redirect to login page after short delay
+    setTimeout(() => {
+      window.location.href = 'login.html';
+    }, 1500);
+  });
+}
+
 // Find Doctor Modal Functionality
 if (findDoctorBtn) {
   findDoctorBtn.addEventListener('click', () => {
@@ -126,8 +146,48 @@ window.addEventListener('click', (event) => {
   }
 });
 
+// Fetch doctors from API
+async function fetchDoctors(specialty, location) {
+  // This would normally be an API call
+  // For demo purposes, we'll simulate an API response
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      // Simulated API response
+      resolve([
+        {
+          id: 1,
+          name: 'Dr. Sarah Johnson',
+          specialty: 'Cardiologist',
+          distance: '2.3 miles away',
+          rating: 4.8,
+          reviews: 56,
+          image: 'https://randomuser.me/api/portraits/women/68.jpg'
+        },
+        {
+          id: 2,
+          name: 'Dr. Michael Chen',
+          specialty: 'Cardiologist',
+          distance: '3.1 miles away',
+          rating: 4.6,
+          reviews: 42,
+          image: 'https://randomuser.me/api/portraits/men/32.jpg'
+        },
+        {
+          id: 3,
+          name: 'Dr. Lisa Thompson',
+          specialty: 'Cardiologist',
+          distance: '4.7 miles away',
+          rating: 4.9,
+          reviews: 38,
+          image: 'https://randomuser.me/api/portraits/women/24.jpg'
+        }
+      ]);
+    }, 1500);
+  });
+}
+
 if (searchDoctorsBtn) {
-  searchDoctorsBtn.addEventListener('click', () => {
+  searchDoctorsBtn.addEventListener('click', async () => {
     const specialty = document.getElementById('specialty').value;
     const location = document.getElementById('location').value;
     
@@ -140,39 +200,53 @@ if (searchDoctorsBtn) {
     doctorsResults.innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i></div>';
     doctorsResults.classList.remove('hidden');
     
-    // Simulate API call with timeout
-    setTimeout(() => {
-      // Display mock results
+    try {
+      // Fetch doctors from API
+      const doctors = await fetchDoctors(specialty, location);
+      
+      if (doctors.length === 0) {
+        doctorsResults.innerHTML = `
+          <div class="empty-state">
+            <p>No doctors found matching your criteria</p>
+          </div>
+        `;
+        return;
+      }
+      
+      // Display doctor results
+      doctorsResults.innerHTML = doctors.map(doctor => `
+        <div class="doctor-card">
+          <div class="doctor-avatar">
+            <img src="${doctor.image}" alt="${doctor.name}">
+          </div>
+          <div class="doctor-info">
+            <h4>${doctor.name}</h4>
+            <p>${doctor.specialty}</p>
+            <p><i class="fas fa-map-marker-alt"></i> ${doctor.distance}</p>
+            <p><i class="fas fa-star"></i> ${doctor.rating} (${doctor.reviews} reviews)</p>
+          </div>
+          <button class="secondary-btn book-appointment" data-id="${doctor.id}">Book Appointment</button>
+        </div>
+      `).join('');
+      
+      // Add event listeners to book appointment buttons
+      const bookButtons = doctorsResults.querySelectorAll('.book-appointment');
+      bookButtons.forEach(button => {
+        button.addEventListener('click', () => {
+          const doctorId = button.dataset.id;
+          showToast(`Appointment request sent for doctor #${doctorId}`);
+          // This would normally call an API to book the appointment
+        });
+      });
+      
+    } catch (error) {
+      console.error('Error fetching doctors:', error);
       doctorsResults.innerHTML = `
-        <div class="doctor-card">
-          <div class="doctor-info">
-            <h4>Dr. Sarah Johnson</h4>
-            <p>Cardiologist</p>
-            <p><i class="fas fa-map-marker-alt"></i> 2.3 miles away</p>
-            <p><i class="fas fa-star"></i> 4.8 (56 reviews)</p>
-          </div>
-          <button class="secondary-btn">Book Appointment</button>
-        </div>
-        <div class="doctor-card">
-          <div class="doctor-info">
-            <h4>Dr. Michael Chen</h4>
-            <p>Cardiologist</p>
-            <p><i class="fas fa-map-marker-alt"></i> 3.1 miles away</p>
-            <p><i class="fas fa-star"></i> 4.6 (42 reviews)</p>
-          </div>
-          <button class="secondary-btn">Book Appointment</button>
-        </div>
-        <div class="doctor-card">
-          <div class="doctor-info">
-            <h4>Dr. Lisa Thompson</h4>
-            <p>Cardiologist</p>
-            <p><i class="fas fa-map-marker-alt"></i> 4.7 miles away</p>
-            <p><i class="fas fa-star"></i> 4.9 (38 reviews)</p>
-          </div>
-          <button class="secondary-btn">Book Appointment</button>
+        <div class="error-state">
+          <p>Failed to find doctors. Please try again.</p>
         </div>
       `;
-    }, 1500);
+    }
   });
 }
 
