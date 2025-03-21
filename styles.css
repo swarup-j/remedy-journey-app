@@ -1072,259 +1072,54 @@ textarea {
   }
 }
 
-/* Authentication Pages */
-.auth-container {
-  display: flex;
-  flex-direction: column;
+/* Authentication Pages - Completely redesigned */
+.auth-page {
+  background: linear-gradient(135deg, rgba(76, 175, 80, 0.1), rgba(139, 195, 74, 0.2));
   min-height: 100vh;
-  background-color: #f8f9fa;
-}
-
-.auth-header {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 20px;
-  background-color: #ffffff;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
-.logo {
+.auth-container {
+  display: flex;
+  max-width: 1000px;
+  width: 100%;
+  min-height: 600px;
+  background-color: var(--white);
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  margin: 20px;
+}
+
+.auth-illustration {
+  flex: 1;
+  background: linear-gradient(135deg, var(--primary-dark), var(--primary-light));
+  color: white;
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+.auth-logo {
   display: flex;
   align-items: center;
-  color: #4CAF50;
+  z-index: 2;
 }
 
-.logo span {
-  font-size: 2rem;
+.auth-logo span {
+  font-size: 2.5rem;
   margin-right: 10px;
 }
 
-.auth-card {
-  background-color: #ffffff;
-  border-radius: 10px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-  padding: 30px;
-  width: 90%;
-  max-width: 450px;
-  margin: 20px auto;
-}
-
-.signup-card {
-  max-width: 500px;
-}
-
-.auth-card h2 {
+.auth-logo h1 {
   font-size: 1.8rem;
-  color: #333;
-  margin-bottom: 10px;
-  text-align: center;
+  font-weight: 600;
 }
 
-.auth-subtitle {
-  text-align: center;
-  color: #666;
-  margin-bottom: 25px;
-}
-
-.auth-form {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.input-with-icon {
-  position: relative;
-}
-
-.input-with-icon span:first-child {
-  position: absolute;
-  left: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #4CAF50;
-}
-
-.input-with-icon input {
-  padding-left: 40px;
-  width: 100%;
-  height: 48px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  font-size: 1rem;
-}
-
-/* Animations */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(15px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.medicine-card, .medicine-item, .profile-section, .greeting-card, .timeline-pills {
-  animation: fadeIn 0.4s ease-out;
-}
-
-/* Error state */
-.error-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: 2rem;
-  background-color: #ffebee;
-  border-radius: 8px;
-  margin: 1rem 0;
-}
-
-.error-state p {
-  margin-bottom: 1rem;
-  color: #d32f2f;
-}
-
-/* Toast notification error variation */
-.toast-notification.error {
-  background-color: #f44336;
-}
-
-.toast-notification.error i {
-  color: white;
-}
-
-/* Connection status indicator */
-.connection-status {
-  position: fixed;
-  top: 10px;
-  right: 10px;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  z-index: 1000;
-}
-
-.connection-status.online {
-  background-color: #4CAF50;
-  box-shadow: 0 0 5px rgba(76, 175, 80, 0.7);
-}
-
-.connection-status.offline {
-  background-color: #F44336;
-  box-shadow: 0 0 5px rgba(244, 67, 54, 0.7);
-}
-
-/* Loading spinner */
-.loading-spinner {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100px;
-  font-size: 2rem;
-  color: var(--primary-color);
-}
-
-.spinner-wrapper {
-  position: relative;
-  width: 40px;
-  height: 40px;
-}
-
-.spinner-circle {
-  border: 3px solid rgba(76, 175, 80, 0.2);
-  border-top-color: var(--primary-color);
-  border-radius: 50%;
-  width: 100%;
-  height: 100%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-/* Medicine Summary Styles */
-.medicine-summary-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.medicine-summary-item {
-  display: flex;
-  align-items: center;
-  background-color: var(--very-light-gray);
-  border-radius: 12px;
-  padding: 12px 15px;
-}
-
-.medicine-summary-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 1rem;
-  margin-right: 15px;
-}
-
-.medicine-summary-info {
+.illustration-image {
   flex: 1;
-}
-
-.medicine-summary-info h4 {
-  font-size: 1rem;
-  margin-bottom: 3px;
-  color: var(--dark-gray);
-}
-
-.medicine-summary-info p {
-  font-size: 0.8rem;
-  color: var(--medium-gray);
-}
-
-.medicine-summary-adherence {
-  background-color: rgba(76, 175, 80, 0.1);
-  color: var(--primary-color);
-  border-radius: 20px;
-  padding: 3px 10px;
-  font-size: 0.8rem;
-  font-weight: 500;
-}
-
-/* Doctor Finder Styles */
-.doctor-card {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background-color: var(--very-light-gray);
-  border-radius: 12px;
-  padding: 15px;
-  margin-bottom: 12px;
-}
-
-.doctor-info {
-  flex: 1;
-}
-
-.doctor-info h4 {
-  font-size: 1rem;
-  margin-bottom: 5px;
-  color: var(--dark-gray);
-}
-
-.doctor-info p {
-  font-size: 0.8rem;
-  color: var(--medium-gray);
-  margin-bottom: 3px;
-}
-
-.doctor-info p:last-child {
-  margin-bottom: 0;
-}
-
-.doctor-info p i {
-  margin-right: 5px;
-  width: 16px;
-  text-align: center;
-}
+  background-image: url('https://img.freepik.com/free-vector/doctor-with-medicine-bottle-prescription-healthcare-concept_10045-641.jpg?w=740&t=st=1688997554~exp=1688998154~hmac=f63f15f9c5a6ac0bb0193b5c888fdc0addef7
