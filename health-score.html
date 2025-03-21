@@ -1,0 +1,531 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Health Score Calculator - MediTrack</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .health-score-container {
+            padding: 20px;
+            padding-bottom: 100px;
+        }
+        
+        .question-card {
+            background-color: #fff;
+            border-radius: var(--card-border-radius);
+            box-shadow: var(--card-shadow);
+            padding: 16px;
+            margin-bottom: 15px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .question-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .question-card p {
+            font-weight: 600;
+            margin-bottom: 12px;
+            font-size: 0.95rem;
+            color: var(--dark-gray);
+        }
+        
+        .answer-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .answer-option {
+            flex: 1;
+            min-width: 90px;
+        }
+        
+        .answer-option input[type="radio"] {
+            display: none;
+        }
+        
+        .answer-option label {
+            display: block;
+            background-color: var(--very-light-gray);
+            padding: 8px 12px;
+            text-align: center;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 1px solid transparent;
+            margin: 0;
+            color: var(--medium-gray);
+        }
+        
+        .answer-option input[type="radio"]:checked + label {
+            background-color: rgba(76, 175, 80, 0.15);
+            color: var(--primary-color);
+            border-color: rgba(76, 175, 80, 0.3);
+            font-weight: 500;
+        }
+        
+        .chart-container {
+            margin: 30px auto;
+            max-width: 260px;
+            position: relative;
+            display: none;
+        }
+        
+        .score-display {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            display: none;
+        }
+        
+        .score-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            line-height: 1;
+        }
+        
+        .score-text {
+            font-size: 0.9rem;
+            color: var(--medium-gray);
+        }
+        
+        .score-message {
+            margin-top: 15px;
+            padding: 12px 15px;
+            background-color: var(--accent-color);
+            border-radius: 12px;
+            text-align: center;
+            color: var(--primary-dark);
+            font-weight: 500;
+            display: none;
+        }
+        
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 25px;
+        }
+        
+        .action-buttons button {
+            border-radius: 30px;
+            padding: 14px;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: transform 0.3s, background-color 0.3s;
+        }
+        
+        .action-buttons button:hover {
+            transform: translateY(-2px);
+        }
+        
+        .action-buttons button i {
+            font-size: 1rem;
+        }
+        
+        .save-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .save-btn:hover {
+            background-color: var(--primary-dark);
+        }
+        
+        .reset-btn {
+            background-color: transparent;
+            color: var(--medium-gray);
+            border: 1px solid var(--light-gray);
+            cursor: pointer;
+        }
+        
+        .reset-btn:hover {
+            background-color: var(--very-light-gray);
+        }
+        
+        .form-progress {
+            height: 6px;
+            background-color: var(--light-gray);
+            border-radius: 3px;
+            margin-bottom: 25px;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background-color: var(--primary-color);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .form-header-container {
+            margin-bottom: 20px;
+        }
+        
+        .form-header-container p {
+            color: var(--medium-gray);
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+        
+        /* Fixing the footer nav */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            max-width: 500px;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <a href="index.html" class="back-btn"><i class="fas fa-arrow-left"></i></a>
+            <h1>Health Score</h1>
+        </header>
+
+        <main class="health-score-container">
+            <div class="form-header-container">
+                <p>Answer these questions to calculate your daily health score</p>
+                <div class="form-progress">
+                    <div class="progress-bar" id="progressBar"></div>
+                </div>
+            </div>
+            
+            <form id="quizForm">
+                <div class="question-card">
+                    <p>1. How are you feeling today?</p>
+                    <div class="answer-options">
+                        <div class="answer-option">
+                            <input type="radio" id="q1-1" name="q1" value="1">
+                            <label for="q1-1">Bad</label>
+                        </div>
+                        <div class="answer-option">
+                            <input type="radio" id="q1-2" name="q1" value="2">
+                            <label for="q1-2">Okay</label>
+                        </div>
+                        <div class="answer-option">
+                            <input type="radio" id="q1-3" name="q1" value="3">
+                            <label for="q1-3">Good</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="question-card">
+                    <p>2. Did you sleep enough?</p>
+                    <div class="answer-options">
+                        <div class="answer-option">
+                            <input type="radio" id="q2-1" name="q2" value="1">
+                            <label for="q2-1">No</label>
+                        </div>
+                        <div class="answer-option">
+                            <input type="radio" id="q2-2" name="q2" value="2">
+                            <label for="q2-2">Somewhat</label>
+                        </div>
+                        <div class="answer-option">
+                            <input type="radio" id="q2-3" name="q2" value="3">
+                            <label for="q2-3">Yes</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="question-card">
+                    <p>3. Are you satisfied with what you ate?</p>
+                    <div class="answer-options">
+                        <div class="answer-option">
+                            <input type="radio" id="q3-1" name="q3" value="1">
+                            <label for="q3-1">No</label>
+                        </div>
+                        <div class="answer-option">
+                            <input type="radio" id="q3-2" name="q3" value="2">
+                            <label for="q3-2">Somewhat</label>
+                        </div>
+                        <div class="answer-option">
+                            <input type="radio" id="q3-3" name="q3" value="3">
+                            <label for="q3-3">Yes</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="question-card">
+                    <p>4. Did you drink enough water today?</p>
+                    <div class="answer-options">
+                        <div class="answer-option">
+                            <input type="radio" id="q4-1" name="q4" value="1">
+                            <label for="q4-1">No</label>
+                        </div>
+                        <div class="answer-option">
+                            <input type="radio" id="q4-2" name="q4" value="2">
+                            <label for="q4-2">Somewhat</label>
+                        </div>
+                        <div class="answer-option">
+                            <input type="radio" id="q4-3" name="q4" value="3">
+                            <label for="q4-3">Yes</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="question-card">
+                    <p>5. Do you feel any improvement in your health?</p>
+                    <div class="answer-options">
+                        <div class="answer-option">
+                            <input type="radio" id="q5-1" name="q5" value="1">
+                            <label for="q5-1">No</label>
+                        </div>
+                        <div class="answer-option">
+                            <input type="radio" id="q5-2" name="q5" value="2">
+                            <label for="q5-2">Slightly</label>
+                        </div>
+                        <div class="answer-option">
+                            <input type="radio" id="q5-3" name="q5" value="3">
+                            <label for="q5-3">Yes</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="question-card">
+                    <p>6. Did you take your medication on time?</p>
+                    <div class="answer-options">
+                        <div class="answer-option">
+                            <input type="radio" id="q6-1" name="q6" value="1">
+                            <label for="q6-1">No</label>
+                        </div>
+                        <div class="answer-option">
+                            <input type="radio" id="q6-2" name="q6" value="2">
+                            <label for="q6-2">Somewhat</label>
+                        </div>
+                        <div class="answer-option">
+                            <input type="radio" id="q6-3" name="q6" value="3">
+                            <label for="q6-3">Yes</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="question-card">
+                    <p>7. Have you experienced any unusual symptoms?</p>
+                    <div class="answer-options">
+                        <div class="answer-option">
+                            <input type="radio" id="q7-1" name="q7" value="1">
+                            <label for="q7-1">Yes</label>
+                        </div>
+                        <div class="answer-option">
+                            <input type="radio" id="q7-2" name="q7" value="2">
+                            <label for="q7-2">Mild</label>
+                        </div>
+                        <div class="answer-option">
+                            <input type="radio" id="q7-3" name="q7" value="3">
+                            <label for="q7-3">No</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="question-card">
+                    <p>8. Did you get enough physical activity?</p>
+                    <div class="answer-options">
+                        <div class="answer-option">
+                            <input type="radio" id="q8-1" name="q8" value="1">
+                            <label for="q8-1">No</label>
+                        </div>
+                        <div class="answer-option">
+                            <input type="radio" id="q8-2" name="q8" value="2">
+                            <label for="q8-2">Somewhat</label>
+                        </div>
+                        <div class="answer-option">
+                            <input type="radio" id="q8-3" name="q8" value="3">
+                            <label for="q8-3">Yes</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="question-card">
+                    <p>9. Are you feeling stressed?</p>
+                    <div class="answer-options">
+                        <div class="answer-option">
+                            <input type="radio" id="q9-1" name="q9" value="1">
+                            <label for="q9-1">Yes</label>
+                        </div>
+                        <div class="answer-option">
+                            <input type="radio" id="q9-2" name="q9" value="2">
+                            <label for="q9-2">A little</label>
+                        </div>
+                        <div class="answer-option">
+                            <input type="radio" id="q9-3" name="q9" value="3">
+                            <label for="q9-3">No</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="question-card">
+                    <p>10. Do you feel rested and energetic?</p>
+                    <div class="answer-options">
+                        <div class="answer-option">
+                            <input type="radio" id="q10-1" name="q10" value="1">
+                            <label for="q10-1">No</label>
+                        </div>
+                        <div class="answer-option">
+                            <input type="radio" id="q10-2" name="q10" value="2">
+                            <label for="q10-2">Somewhat</label>
+                        </div>
+                        <div class="answer-option">
+                            <input type="radio" id="q10-3" name="q10" value="3">
+                            <label for="q10-3">Yes</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="action-buttons">
+                    <button type="button" id="calculateBtn" class="save-btn primary-btn" onclick="calculateScore()">
+                        <i class="fas fa-calculator"></i> Calculate Health Score
+                    </button>
+                </div>
+            </form>
+
+            <div class="chart-container" id="chartContainer">
+                <canvas id="healthChart"></canvas>
+                <div class="score-display" id="scoreDisplay">
+                    <div class="score-number" id="scoreNumber">0</div>
+                    <div class="score-text">Your Score</div>
+                </div>
+                <div class="score-message" id="scoreMessage"></div>
+                <div class="action-buttons">
+                    <button type="button" class="save-btn" id="saveBtn">
+                        <i class="fas fa-save"></i> Save Results
+                    </button>
+                    <button type="button" class="reset-btn" id="resetBtn" onclick="resetForm()">
+                        <i class="fas fa-redo"></i> Take Again
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <nav class="bottom-nav">
+            <a href="index.html"><i class="fas fa-home"></i><span>Home</span></a>
+            <a href="medicine-list.html"><i class="fas fa-list"></i><span>Medicines</span></a>
+            <a href="calendar.html"><i class="fas fa-calendar-alt"></i><span>Calendar</span></a>
+            <a href="profile.html"><i class="fas fa-user"></i><span>Profile</span></a>
+        </nav>
+    </div>
+    
+    <script>
+        // Update progress bar as user selects answers
+        const radioButtons = document.querySelectorAll('input[type="radio"]');
+        const progressBar = document.getElementById('progressBar');
+        const totalQuestions = 10;
+        
+        radioButtons.forEach(radio => {
+            radio.addEventListener('change', updateProgress);
+        });
+        
+        function updateProgress() {
+            const answeredQuestions = document.querySelectorAll('input[type="radio"]:checked').length;
+            const progress = (answeredQuestions / totalQuestions) * 100;
+            progressBar.style.width = progress + '%';
+        }
+        
+        function calculateScore() {
+            let totalScore = 0;
+            let maxScore = 30;
+            let unansweredQuestions = [];
+            
+            for (let i = 1; i <= 10; i++) {
+                let selected = document.querySelector(`input[name="q${i}"]:checked`);
+                if (!selected) {
+                    unansweredQuestions.push(i);
+                } else {
+                    totalScore += parseInt(selected.value);
+                }
+            }
+            
+            if (unansweredQuestions.length > 0) {
+                alert("Please answer all questions before submitting. You missed questions: " + unansweredQuestions.join(", "));
+                return;
+            }
+            
+            const percentage = Math.round((totalScore / maxScore) * 100);
+            
+            // Hide form and show results
+            document.getElementById("quizForm").style.display = "none";
+            document.getElementById("chartContainer").style.display = "block";
+            document.getElementById("scoreDisplay").style.display = "block";
+            document.getElementById("scoreNumber").innerText = percentage;
+            
+            // Show appropriate message based on score
+            const messageElement = document.getElementById("scoreMessage");
+            messageElement.style.display = "block";
+            
+            if (percentage >= 80) {
+                messageElement.innerText = "Great job! You're taking excellent care of your health.";
+                messageElement.style.backgroundColor = "rgba(76, 175, 80, 0.15)";
+                messageElement.style.color = "#388E3C";
+            } else if (percentage >= 60) {
+                messageElement.innerText = "Good progress! Keep working on improving your health habits.";
+                messageElement.style.backgroundColor = "rgba(255, 193, 7, 0.15)";
+                messageElement.style.color = "#FFA000";
+            } else {
+                messageElement.innerText = "Let's focus on improving your health habits. Small steps make a big difference!";
+                messageElement.style.backgroundColor = "rgba(244, 67, 54, 0.15)";
+                messageElement.style.color = "#D32F2F";
+            }
+            
+            // Create chart
+            const ctx = document.getElementById("healthChart").getContext("2d");
+            const healthChart = new Chart(ctx, {
+                type: "doughnut",
+                data: {
+                    datasets: [{
+                        data: [percentage, 100 - percentage],
+                        backgroundColor: ["#4CAF50", "#f1f1f1"],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    cutout: '75%',
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            enabled: false
+                        }
+                    },
+                    animation: {
+                        animateRotate: true,
+                        animateScale: true
+                    }
+                }
+            });
+            
+            // For demo purposes - save button listener
+            document.getElementById("saveBtn").addEventListener("click", function() {
+                alert("Your health score has been saved successfully!");
+                // In a real app, this would save the score to your backend
+            });
+        }
+        
+        function resetForm() {
+            document.getElementById("quizForm").reset();
+            document.getElementById("quizForm").style.display = "block";
+            document.getElementById("chartContainer").style.display = "none";
+            document.getElementById("scoreDisplay").style.display = "none";
+            document.getElementById("scoreMessage").style.display = "none";
+            progressBar.style.width = "0%";
+        }
+    </script>
+</body>
+</html>
