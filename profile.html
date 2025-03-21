@@ -25,20 +25,48 @@
           <div class="profile-info">
             <h2 id="user-name">Demo User</h2>
             <p id="user-email">user@example.com</p>
+            <button id="find-doctor-btn" class="secondary-btn">
+              <i class="fas fa-user-md"></i>
+              Find a Doctor
+            </button>
+          </div>
+        </div>
+        
+        <!-- User Details Section -->
+        <div class="user-details-section">
+          <h3>Personal Information</h3>
+          <div class="user-details-grid">
+            <div class="detail-item">
+              <span class="detail-label">Age</span>
+              <span id="user-age" class="detail-value">32</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Height</span>
+              <span id="user-height" class="detail-value">175 cm</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Weight</span>
+              <span id="user-weight" class="detail-value">70 kg</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Blood Group</span>
+              <span id="user-blood-group" class="detail-value">O+</span>
+            </div>
           </div>
         </div>
       </div>
 
       <div class="statistics-section">
-        <h3>Statistics</h3>
+        <h3>Health Metrics</h3>
         <div class="stats-container">
           <div class="stat-card">
             <div class="stat-icon">
               <i class="fas fa-check-circle"></i>
             </div>
             <div class="stat-info">
-              <p class="stat-title">Adherence Rate</p>
+              <p class="stat-title">Adherence Score</p>
               <h3 id="adherence-rate">95%</h3>
+              <p class="stat-detail">Excellent</p>
             </div>
           </div>
           <div class="stat-card">
@@ -77,6 +105,39 @@
       <a href="calendar.html"><i class="fas fa-calendar-alt"></i><span>Calendar</span></a>
       <a href="profile.html" class="active"><i class="fas fa-user"></i><span>Profile</span></a>
     </nav>
+  </div>
+
+  <!-- Find Doctor Modal -->
+  <div id="find-doctor-modal" class="modal">
+    <div class="modal-content">
+      <span class="close-btn" id="close-doctor-modal">&times;</span>
+      <h2>Find a Doctor</h2>
+      
+      <div class="form-group">
+        <label for="specialty">Specialty</label>
+        <select id="specialty" class="form-control">
+          <option value="">Select Specialty</option>
+          <option value="general">General Practitioner</option>
+          <option value="cardiology">Cardiology</option>
+          <option value="neurology">Neurology</option>
+          <option value="pediatrics">Pediatrics</option>
+          <option value="dermatology">Dermatology</option>
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label for="location">Location</label>
+        <input type="text" id="location" placeholder="Enter your location" class="form-control">
+      </div>
+      
+      <button id="search-doctors-btn" class="primary-btn">
+        <i class="fas fa-search"></i> Search Doctors
+      </button>
+      
+      <div id="doctors-results" class="doctors-results hidden">
+        <!-- Results will appear here -->
+      </div>
+    </div>
   </div>
 
   <div id="toast-notification" class="toast-notification">
