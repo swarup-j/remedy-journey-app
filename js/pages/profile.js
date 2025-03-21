@@ -1,256 +1,180 @@
 
-// Profile page initialization and functionality
+import { showToast, formatDate } from '../utils.js';
 import { getUserProfile, getAdherenceStats } from '../api/userApi.js';
-import { fetchMedicines } from '../api/medicineApi.js';
-import { showToast, setupOfflineDetection } from '../utils.js';
 
-document.addEventListener('DOMContentLoaded', () => {
-  // Setup offline detection
-  setupOfflineDetection();
-  
-  // Initialize profile page
-  initializeProfilePage();
+// DOM Elements
+const currentDateElement = document.getElementById('current-date');
+const userNameElement = document.getElementById('user-name');
+const userEmailElement = document.getElementById('user-email');
+const userAgeElement = document.getElementById('user-age');
+const userHeightElement = document.getElementById('user-height');
+const userWeightElement = document.getElementById('user-weight');
+const userBloodGroupElement = document.getElementById('user-blood-group');
+const adherenceRateElement = document.getElementById('adherence-rate');
+const activeMedicationsElement = document.getElementById('active-medications');
+const medicineSummaryElement = document.getElementById('medicine-summary');
 
-  // Setup doctor finder modal
-  setupDoctorFinderModal();
-});
+// Find Doctor Modal Elements
+const findDoctorBtn = document.getElementById('find-doctor-btn');
+const findDoctorModal = document.getElementById('find-doctor-modal');
+const closeDoctorModal = document.getElementById('close-doctor-modal');
+const searchDoctorsBtn = document.getElementById('search-doctors-btn');
+const doctorsResults = document.getElementById('doctors-results');
 
-async function initializeProfilePage() {
+// Display current date
+currentDateElement.textContent = formatDate(new Date());
+
+// Fetch and display user profile
+async function loadUserProfile() {
   try {
-    // Set current date
-    const currentDateElement = document.getElementById('current-date');
-    if (currentDateElement) {
-      currentDateElement.textContent = new Date().toLocaleDateString();
-    }
-    
-    // Fetch user profile
     const profile = await getUserProfile();
     
-    // Update UI with user info
-    document.getElementById('user-name').textContent = profile.name || 'User';
-    document.getElementById('user-email').textContent = profile.email || 'No email';
+    // Update profile information
+    userNameElement.textContent = `${profile.name}`;
+    userEmailElement.textContent = profile.email;
+    userAgeElement.textContent = profile.age;
+    userHeightElement.textContent = `${profile.height} cm`;
+    userWeightElement.textContent = `${profile.weight} kg`;
+    userBloodGroupElement.textContent = profile.bloodGroup;
     
-    // Update additional user information
-    document.getElementById('user-age').textContent = profile.age || '30';
-    document.getElementById('user-height').textContent = (profile.height ? `${profile.height} cm` : 'Not set');
-    document.getElementById('user-weight').textContent = (profile.weight ? `${profile.weight} kg` : 'Not set');
-    document.getElementById('user-blood-group').textContent = profile.bloodGroup || 'Not set';
-    
-    // Fetch adherence statistics
+    // Load adherence stats
     const stats = await getAdherenceStats();
+    adherenceRateElement.textContent = `${stats.adherenceRate}%`;
+    activeMedicationsElement.textContent = stats.activeMedicines;
     
-    // Update UI with statistics
-    const adherenceElement = document.getElementById('adherence-rate');
-    if (adherenceElement) {
-      adherenceElement.textContent = stats.adherenceRate !== undefined ? `${stats.adherenceRate}%` : 'N/A';
-      
-      // Add adherence rating text
-      const adherenceRating = document.querySelector('.stat-detail');
-      if (adherenceRating) {
-        if (stats.adherenceRate >= 90) {
-          adherenceRating.textContent = 'Excellent';
-          adherenceRating.style.color = '#4CAF50';
-        } else if (stats.adherenceRate >= 70) {
-          adherenceRating.textContent = 'Good';
-          adherenceRating.style.color = '#FFC107';
-        } else {
-          adherenceRating.textContent = 'Needs Improvement';
-          adherenceRating.style.color = '#F44336';
-        }
-      }
-    }
-    
-    document.getElementById('active-medications').textContent = 
-      stats.activeMedicines !== undefined ? stats.activeMedicines : 'N/A';
-    
-    // Load medicine summary
-    await loadMedicineSummary();
+    // Update medicine summary
+    loadMedicineSummary();
     
   } catch (error) {
-    console.error('Error loading profile data:', error);
-    showToast('Error loading profile data');
+    console.error('Error loading profile:', error);
+    medicineSummaryElement.innerHTML = `
+      <div class="error-state">
+        <p>Failed to load profile data</p>
+        <button onclick="loadUserProfile()" class="secondary-btn">
+          <i class="fas fa-sync"></i> Try Again
+        </button>
+      </div>
+    `;
   }
 }
 
-// Load medicine summary for profile page
-async function loadMedicineSummary() {
-  const summaryContainer = document.getElementById('medicine-summary');
-  if (!summaryContainer) return;
-  
-  try {
-    const medicines = await fetchMedicines();
-    
-    if (medicines.length === 0) {
-      summaryContainer.innerHTML = '<p>No medicines found.</p>';
-      return;
-    }
-    
-    // Count by type
-    const typeCount = {};
-    medicines.forEach(medicine => {
-      if (!typeCount[medicine.type]) {
-        typeCount[medicine.type] = 0;
-      }
-      typeCount[medicine.type]++;
-    });
-    
-    // Create pie chart (simplified version)
-    const chartContainer = document.createElement('div');
-    chartContainer.classList.add('simple-pie-chart');
-    
-    const chartLegend = document.createElement('div');
-    chartLegend.classList.add('chart-legend');
-    
-    // Standard colors for medicine types
-    const colors = {
-      'tablet': '#FF6384',
-      'capsule': '#36A2EB',
-      'liquid': '#FFCE56',
-      'injection': '#4BC0C0',
-      'topical': '#9966FF',
-      'other': '#C9CBCF'
-    };
-    
-    // Add legend items
-    Object.entries(typeCount).forEach(([type, count]) => {
-      const color = colors[type.toLowerCase()] || colors.other;
-      
-      const legendItem = document.createElement('div');
-      legendItem.classList.add('legend-item');
-      legendItem.innerHTML = `
-        <span class="legend-color" style="background-color: ${color}"></span>
-        <span class="legend-label">${type} (${count})</span>
-      `;
-      
-      chartLegend.appendChild(legendItem);
-    });
-    
-    // Add chart and legend to container
-    summaryContainer.innerHTML = '<h3>Medicine Types</h3>';
-    summaryContainer.appendChild(chartContainer);
-    summaryContainer.appendChild(chartLegend);
-    
-  } catch (error) {
-    console.error('Error loading medicine summary:', error);
-    summaryContainer.innerHTML = '<p>Failed to load medicine summary.</p>';
-  }
+// Load medicine summary
+function loadMedicineSummary() {
+  // This would normally fetch from an API
+  // For now we'll use dummy data
+  setTimeout(() => {
+    medicineSummaryElement.innerHTML = `
+      <div class="medicine-summary-list">
+        <div class="medicine-summary-item">
+          <div class="medicine-summary-icon" style="background-color: #8BC34A">
+            <i class="fas fa-pills"></i>
+          </div>
+          <div class="medicine-summary-info">
+            <h4>Lisinopril</h4>
+            <p>10mg - Once daily</p>
+          </div>
+          <div class="medicine-summary-adherence">
+            <span>95%</span>
+          </div>
+        </div>
+        <div class="medicine-summary-item">
+          <div class="medicine-summary-icon" style="background-color: #42A5F5">
+            <i class="fas fa-pills"></i>
+          </div>
+          <div class="medicine-summary-info">
+            <h4>Metformin</h4>
+            <p>500mg - Twice daily</p>
+          </div>
+          <div class="medicine-summary-adherence">
+            <span>87%</span>
+          </div>
+        </div>
+        <div class="medicine-summary-item">
+          <div class="medicine-summary-icon" style="background-color: #FFA726">
+            <i class="fas fa-pills"></i>
+          </div>
+          <div class="medicine-summary-info">
+            <h4>Vitamin D</h4>
+            <p>1000IU - Once daily</p>
+          </div>
+          <div class="medicine-summary-adherence">
+            <span>100%</span>
+          </div>
+        </div>
+      </div>
+    `;
+  }, 1000);
 }
 
-// Setup doctor finder modal functionality
-function setupDoctorFinderModal() {
-  const findDoctorBtn = document.getElementById('find-doctor-btn');
-  const doctorModal = document.getElementById('find-doctor-modal');
-  const closeModalBtn = document.getElementById('close-doctor-modal');
-  const searchDoctorsBtn = document.getElementById('search-doctors-btn');
-  const doctorsResults = document.getElementById('doctors-results');
-  
-  // Open modal
+// Find Doctor Modal Functionality
+if (findDoctorBtn) {
   findDoctorBtn.addEventListener('click', () => {
-    doctorModal.style.display = 'flex';
+    findDoctorModal.style.display = 'flex';
   });
-  
-  // Close modal
-  closeModalBtn.addEventListener('click', () => {
-    doctorModal.style.display = 'none';
+}
+
+if (closeDoctorModal) {
+  closeDoctorModal.addEventListener('click', () => {
+    findDoctorModal.style.display = 'none';
   });
-  
-  // Close modal when clicking outside
-  window.addEventListener('click', (event) => {
-    if (event.target === doctorModal) {
-      doctorModal.style.display = 'none';
-    }
-  });
-  
-  // Search for doctors (dummy implementation)
+}
+
+// Close modal when clicking outside content
+window.addEventListener('click', (event) => {
+  if (event.target === findDoctorModal) {
+    findDoctorModal.style.display = 'none';
+  }
+});
+
+if (searchDoctorsBtn) {
   searchDoctorsBtn.addEventListener('click', () => {
     const specialty = document.getElementById('specialty').value;
     const location = document.getElementById('location').value;
     
-    // Show loading
+    if (!specialty || !location) {
+      showToast('Please select a specialty and enter a location');
+      return;
+    }
+    
+    // Show loading indicator
     doctorsResults.innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i></div>';
     doctorsResults.classList.remove('hidden');
     
-    // Simulate API call
+    // Simulate API call with timeout
     setTimeout(() => {
-      displayDummyDoctorResults(specialty, location);
-    }, 1000);
+      // Display mock results
+      doctorsResults.innerHTML = `
+        <div class="doctor-card">
+          <div class="doctor-info">
+            <h4>Dr. Sarah Johnson</h4>
+            <p>Cardiologist</p>
+            <p><i class="fas fa-map-marker-alt"></i> 2.3 miles away</p>
+            <p><i class="fas fa-star"></i> 4.8 (56 reviews)</p>
+          </div>
+          <button class="secondary-btn">Book Appointment</button>
+        </div>
+        <div class="doctor-card">
+          <div class="doctor-info">
+            <h4>Dr. Michael Chen</h4>
+            <p>Cardiologist</p>
+            <p><i class="fas fa-map-marker-alt"></i> 3.1 miles away</p>
+            <p><i class="fas fa-star"></i> 4.6 (42 reviews)</p>
+          </div>
+          <button class="secondary-btn">Book Appointment</button>
+        </div>
+        <div class="doctor-card">
+          <div class="doctor-info">
+            <h4>Dr. Lisa Thompson</h4>
+            <p>Cardiologist</p>
+            <p><i class="fas fa-map-marker-alt"></i> 4.7 miles away</p>
+            <p><i class="fas fa-star"></i> 4.9 (38 reviews)</p>
+          </div>
+          <button class="secondary-btn">Book Appointment</button>
+        </div>
+      `;
+    }, 1500);
   });
 }
 
-// Display dummy doctor results
-function displayDummyDoctorResults(specialty, location) {
-  const doctorsResults = document.getElementById('doctors-results');
-  
-  // Create dummy doctor data
-  const doctors = [
-    {
-      name: "Dr. Sarah Johnson",
-      specialty: "General Practitioner",
-      location: "Medical Center, Downtown",
-      rating: 4.8,
-      available: true
-    },
-    {
-      name: "Dr. Michael Chen",
-      specialty: "Cardiology",
-      location: "Heart Institute, Westside",
-      rating: 4.9,
-      available: false
-    },
-    {
-      name: "Dr. Emily Rodriguez",
-      specialty: "Neurology",
-      location: "Neuro Center, Eastside",
-      rating: 4.7,
-      available: true
-    }
-  ];
-  
-  // Filter doctors based on selection (very simple filter)
-  let filteredDoctors = doctors;
-  if (specialty) {
-    filteredDoctors = filteredDoctors.filter(doc => 
-      doc.specialty.toLowerCase().includes(specialty.toLowerCase()));
-  }
-  
-  if (location) {
-    filteredDoctors = filteredDoctors.filter(doc => 
-      doc.location.toLowerCase().includes(location.toLowerCase()));
-  }
-  
-  // Display results
-  if (filteredDoctors.length === 0) {
-    doctorsResults.innerHTML = '<p>No doctors found matching your criteria.</p>';
-    return;
-  }
-  
-  // Create results HTML
-  let resultsHTML = '<div class="doctors-list">';
-  
-  filteredDoctors.forEach(doctor => {
-    resultsHTML += `
-      <div class="doctor-card">
-        <div class="doctor-info">
-          <h4>${doctor.name}</h4>
-          <p>${doctor.specialty}</p>
-          <p><i class="fas fa-map-marker-alt"></i> ${doctor.location}</p>
-          <p><i class="fas fa-star"></i> ${doctor.rating}</p>
-        </div>
-        <button class="appointment-btn ${!doctor.available ? 'disabled' : ''}">
-          ${doctor.available ? 'Book Appointment' : 'Not Available'}
-        </button>
-      </div>
-    `;
-  });
-  
-  resultsHTML += '</div>';
-  doctorsResults.innerHTML = resultsHTML;
-  
-  // Add event listeners to appointment buttons
-  const appointmentButtons = doctorsResults.querySelectorAll('.appointment-btn:not(.disabled)');
-  appointmentButtons.forEach(button => {
-    button.addEventListener('click', () => {
-      showToast('Appointment booking would open here');
-    });
-  });
-}
+// Initialize page
+loadUserProfile();
